@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -6,6 +7,9 @@ from datetime import datetime
 class SmartHouseGUI(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        # Base path to the 'icons' folder
+        self.icons_folder = os.path.join(os.path.dirname(__file__), "icons")
 
         self.title("Smart House Home Page")
         self.geometry("1200x800")
@@ -76,19 +80,30 @@ class SmartHouseGUI(tk.Tk):
         )
 
     def add_info_widgets(self, parent):
-        # Clock
-        try:
-            clock_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\clock_icon.png").resize((70, 70), Image.LANCZOS)
-            self.clock_icon = ImageTk.PhotoImage(clock_image)
-            clock_label = tk.Label(parent, image=self.clock_icon, bg="#f0f0f0")
-            clock_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            clock_label = tk.Label(
-                parent, text="Clock icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            clock_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading clock icon: {e}")
+        # Icon paths
+        icon_paths = {
+            "clock": "clock_icon.png",
+            "temperature": "temperature_icon.png",
+            "humidity": "humidity_icon.png",
+            "energy": "energy_icon.png",
+            "light": "light_icon.png",
+            "aqi": "aqi_icon.png"
+        }
+
+        # Helper to load and display icons dynamically
+        def load_icon(icon_name):
+            try:
+                icon_path = os.path.join(self.icons_folder, icon_name)
+                icon_image = Image.open(icon_path).resize((70, 70), Image.LANCZOS)
+                return ImageTk.PhotoImage(icon_image)
+            except Exception as e:
+                print(f"Error loading icon {icon_name}: {e}")
+                return None
+
+        # Add widgets with icons
+        self.clock_icon = load_icon(icon_paths["clock"])
+        clock_label = tk.Label(parent, image=self.clock_icon, bg="#f0f0f0")
+        clock_label.pack(side=tk.LEFT, padx=10)
 
         self.time_label = tk.Label(
             parent, text="", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
@@ -96,95 +111,45 @@ class SmartHouseGUI(tk.Tk):
         self.time_label.pack(side=tk.LEFT, padx=10)
         self.update_time()
 
-        # Temperature
-        try:
-            temp_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\temperature_icon.png").resize((70, 70), Image.LANCZOS)
-            self.temp_icon = ImageTk.PhotoImage(temp_image)
-            temp_label = tk.Label(parent, image=self.temp_icon, bg="#f0f0f0")
-            temp_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            temp_label = tk.Label(
-                parent, text="Temp icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            temp_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading temperature icon: {e}")
+        self.temp_icon = load_icon(icon_paths["temperature"])
+        temp_label = tk.Label(parent, image=self.temp_icon, bg="#f0f0f0")
+        temp_label.pack(side=tk.LEFT, padx=10)
 
         self.temperature_label = tk.Label(
             parent, text="22°C", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
         )
         self.temperature_label.pack(side=tk.LEFT, padx=10)
 
-        # Humidity
-        try:
-            humidity_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\humidity_icon.png").resize((70, 70), Image.LANCZOS)
-            self.humidity_icon = ImageTk.PhotoImage(humidity_image)
-            humidity_label = tk.Label(parent, image=self.humidity_icon, bg="#f0f0f0")
-            humidity_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            humidity_label = tk.Label(
-                parent, text="Humidity icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            humidity_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading humidity icon: {e}")
+        self.humidity_icon = load_icon(icon_paths["humidity"])
+        humidity_label = tk.Label(parent, image=self.humidity_icon, bg="#f0f0f0")
+        humidity_label.pack(side=tk.LEFT, padx=10)
 
         self.humidity_label = tk.Label(
             parent, text="50%", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
         )
         self.humidity_label.pack(side=tk.LEFT, padx=10)
 
-        # Energy Consumption
-        try:
-            energy_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\energy_icon.png").resize((70, 70), Image.LANCZOS)
-            self.energy_icon = ImageTk.PhotoImage(energy_image)
-            energy_label = tk.Label(parent, image=self.energy_icon, bg="#f0f0f0")
-            energy_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            energy_label = tk.Label(
-                parent, text="Energy icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            energy_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading energy icon: {e}")
+        self.energy_icon = load_icon(icon_paths["energy"])
+        energy_label = tk.Label(parent, image=self.energy_icon, bg="#f0f0f0")
+        energy_label.pack(side=tk.LEFT, padx=10)
 
         self.energy_label = tk.Label(
             parent, text="450 kWh", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
         )
         self.energy_label.pack(side=tk.LEFT, padx=10)
 
-        # Light Percentage
-        try:
-            light_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\light_icon.png").resize((70, 70), Image.LANCZOS)
-            self.light_icon = ImageTk.PhotoImage(light_image)
-            light_label = tk.Label(parent, image=self.light_icon, bg="#f0f0f0")
-            light_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            light_label = tk.Label(
-                parent, text="Light icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            light_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading light icon: {e}")
+        self.light_icon = load_icon(icon_paths["light"])
+        light_label = tk.Label(parent, image=self.light_icon, bg="#f0f0f0")
+        light_label.pack(side=tk.LEFT, padx=10)
 
         self.light_label = tk.Label(
             parent, text="75%", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
         )
         self.light_label.pack(side=tk.LEFT, padx=10)
 
-        # Air Quality Index (AQI)
-        try:
-            aqi_image = Image.open("D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\aqi_icon.png").resize((70, 70), Image.LANCZOS)
-            self.aqi_icon = ImageTk.PhotoImage(aqi_image)
-            aqi_label = tk.Label(parent, image=self.aqi_icon, bg="#f0f0f0")
-            aqi_label.pack(side=tk.LEFT, padx=10)
-        except Exception as e:
-            aqi_label = tk.Label(
-                parent, text="AQI icon not found",
-                font=("Helvetica", 14), bg="#f0f0f0", fg="#ff0000"
-            )
-            aqi_label.pack(side=tk.LEFT, padx=10)
-            print(f"Error loading AQI icon: {e}")
+        self.aqi_icon = load_icon(icon_paths["aqi"])
+        aqi_label = tk.Label(parent, image=self.aqi_icon, bg="#f0f0f0")
+        aqi_label.pack(side=tk.LEFT, padx=10)
 
         self.aqi_label = tk.Label(
             parent, text="AQI: 45", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
@@ -193,21 +158,22 @@ class SmartHouseGUI(tk.Tk):
 
     def add_room_widgets(self):
         rooms = [
-            ("Bedroom", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\bedroom_icon.png"),
-            ("Kids Room", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\kidsroom_icon.png"),
-            ("Living Room", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\livingroom_icon.png"),
-            ("Office", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\office_icon.png"),
-            ("Kitchen", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\kitchen_icon.png"),
-            ("Bathroom", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\bathroom_icon.png"),
-            ("Dressing Room", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\dressingroom_icon.png"),
-            ("Garage", "D:\\YASEMIN\\F24\\cs449\\cs449\\icons\\garage_icon.png")
+            ("Bedroom", "bedroom_icon.png"),
+            ("Kids Room", "kidsroom_icon.png"),
+            ("Living Room", "livingroom_icon.png"),
+            ("Office", "office_icon.png"),
+            ("Kitchen", "kitchen_icon.png"),
+            ("Bathroom", "bathroom_icon.png"),
+            ("Dressing Room", "dressingroom_icon.png"),
+            ("Garage", "garage_icon.png")
         ]
 
-        for i, (room_name, icon_path) in enumerate(rooms):
+        for i, (room_name, icon_file) in enumerate(rooms):
             row = i // 2
             col = i % 2
 
             try:
+                icon_path = os.path.join(self.icons_folder, icon_file)
                 room_image = Image.open(icon_path).resize((150, 150), Image.LANCZOS)
                 room_icon = ImageTk.PhotoImage(room_image)
             except Exception as e:
