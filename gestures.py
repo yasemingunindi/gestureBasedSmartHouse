@@ -1,6 +1,8 @@
 import cv2
 import mediapipe as mp
 
+#comment 
+
 # Initialize MediaPipe Hand module
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
