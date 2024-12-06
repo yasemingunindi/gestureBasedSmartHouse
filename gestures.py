@@ -1,6 +1,8 @@
 import cv2
 import mediapipe as mp
 import math
+import pyautogui
+
 # Initialize MediaPipe Hand module
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -10,6 +12,7 @@ mp_drawing = mp.solutions.drawing_utils
 cap = cv2.VideoCapture(0)
 
 prev_x, prev_y = None, None
+prev_wrist_y = None
 
 def calculate_distance(point1, point2):
     """
@@ -152,7 +155,26 @@ while cap.isOpened():
             y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
             
             # Draw a circle to indicate the cursor
-            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)                     
+            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)  
+            
+            # Gesture detection for peace sign
+            if is_peace_sign(landmarks):
+                # Scroll behavior
+                wrist_y = landmarks[0].y  # Get wrist y-coordinate
+                if prev_wrist_y is not None:
+                    diff = wrist_y - prev_wrist_y
+                    if diff > 0.01:  # Moving downward
+                        pyautogui.scroll(-5)  # Scroll down
+                        print("Scrolling Down")
+                        cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    elif diff < -0.01:  # Moving upward
+                        pyautogui.scroll(5)  # Scroll up
+                        print("Scrolling Up")
+                        cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                prev_wrist_y = wrist_y  # Update wrist position for scrolling
+            else:
+                prev_wrist_y = None  # Reset scrolling if peace sign is not active
+                                   
             if prev_x is not None and prev_y is not None:
                 # Calculate movement
                 dx = x - prev_x
@@ -172,11 +194,8 @@ while cap.isOpened():
             
             # Update previous coordinates
             prev_x, prev_y = x, y
-            
-            if is_peace_sign(landmarks):
-                print("Peace Sign Detected")
-                cv2.putText(frame, "Peace Sign", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-    
+            prev_wrist_y = None
+                
     else:
         prev_x, prev_y = None, None
         
