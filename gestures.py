@@ -1,9 +1,6 @@
 import cv2
 import mediapipe as mp
 import math
-
-#comment 
-
 # Initialize MediaPipe Hand module
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -107,6 +104,9 @@ while cap.isOpened():
         print("Failed to capture frame. Exiting.")
         break
 
+    # Flip the frame horizontally
+    frame = cv2.flip(frame, 1)
+    
     # Convert the frame to RGB
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(frame_rgb)
@@ -122,7 +122,7 @@ while cap.isOpened():
     # Display the frame
     cv2.imshow('Gesture Recognition', frame)
 
-    # Exit loop on pressing the spacebar
+    #  Exit the loop on spacebar press
     if cv2.waitKey(1) & 0xFF == ord(' '):
         break
 
