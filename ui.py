@@ -1,7 +1,7 @@
-import os
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+import os
 from datetime import datetime
 
 class SmartHouseGUI(tk.Tk):
@@ -12,48 +12,74 @@ class SmartHouseGUI(tk.Tk):
         self.icons_folder = os.path.join(os.path.dirname(__file__), "icons")
 
         self.title("Smart House Home Page")
-        self.geometry("1200x800")
+        self.geometry("800x600")
         self.configure(bg="#f0f0f0")
+
+        # Initialize the welcome screen
+        self.show_main_menu()
+    
+    def apply_hover_effect(self, button, hover_bg="#d9d9d9", hover_fg="#000000", normal_bg="#ffffff", normal_fg="#000000"):
+        """Apply hover effect to a button."""
+        button.bind("<Enter>", lambda e: button.config(bg=hover_bg, fg=hover_fg))
+        button.bind("<Leave>", lambda e: button.config(bg=normal_bg, fg=normal_fg))
+
+    def show_main_menu(self):
+        """Display the main menu with a welcome message and a 'Menu' button."""
+        # Clear the existing window
+        for widget in self.winfo_children():
+            widget.destroy()
 
         # Welcome Message
         hello_label = tk.Label(
             self, text="Hello,",
-            font=("Lucida Calligraphy", 50, "bold"), bg="#f0f0f0", fg="#333333"
+            font=("Lucida Calligraphy", 40, "bold"), bg="#f0f0f0", fg="#333333"
         )
-        hello_label.pack(pady=0)
+        hello_label.pack(pady=20)
 
         welcome_label = tk.Label(
             self, text="Welcome Home!",
-            font=("Cooper Black", 75, "bold"), bg="#f0f0f0", fg="#333333"
+            font=("Cooper Black", 55, "bold"), bg="#f0f0f0", fg="#333333"
         )
-        welcome_label.pack(pady=0)
+        welcome_label.pack(pady=20)
 
-        # Scrollable Frame for Time, Temperature, Humidity, Energy, Light, and AQI
-        info_frame = tk.Frame(self, bg="#f0f0f0")
-        info_frame.pack(fill=tk.BOTH, expand=True, pady=20, padx=50)
-
-        canvas = tk.Canvas(info_frame, bg="#f0f0f0", height=50)
-        scroll_x = tk.Scrollbar(info_frame, orient="horizontal", command=canvas.xview)
-        canvas.configure(xscrollcommand=scroll_x.set)
-
-        data_frame = tk.Frame(canvas, bg="#f0f0f0")
-        canvas.create_window((0, 0), window=data_frame, anchor="nw")
-
-        # Pack canvas and scrollbar
-        canvas.pack(side="top", fill="both", expand=True)
-        scroll_x.pack(side="bottom", fill="x")
-
-        # Add widgets for environmental data
-        self.add_info_widgets(data_frame)
-
-        # Adjust scroll region
-        data_frame.bind(
-            "<Configure>", lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
+        # Menu Button
+        menu_button = tk.Button(
+            self, text="Menu", font=("Helvetica", 24, "bold"),
+            bg="#4CAF50", fg="#ffffff", width=10, height=2,
+            command=self.open_room_list
         )
+        menu_button.pack(pady=50)
+        self.apply_hover_effect(menu_button, hover_bg="#45a049", normal_bg="#4CAF50")  # Green highlight effect
 
-        # Scrollable Room List
+
+
+    def open_room_list(self):
+        """Display the room list view."""
+        # Clear the existing window
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        # Create a header frame for the Go Back button and title
+        header_frame = tk.Frame(self, bg="#f0f0f0")
+        header_frame.pack(fill=tk.X, pady=10)
+
+        # Go Back Button with left arrow symbol
+        back_button = tk.Button(
+            header_frame, text="⬅", font=("Helvetica", 18, "bold"),
+            bg="#f0f0f0", fg="#4CAF50", borderwidth=0,
+            command=self.show_main_menu
+        )
+        back_button.pack(side=tk.LEFT, padx=10)
+        self.apply_hover_effect(back_button, hover_fg="#007bff", normal_fg="#4CAF50")  # Blue highlight effect for arrow
+
+        # Title aligned with the Go Back button
+        title_label = tk.Label(
+            header_frame, text="Select a Room",
+            font=("Cooper Black", 30, "bold"), bg="#f0f0f0", fg="#333333"
+        )
+        title_label.pack(side=tk.LEFT, padx=10)
+
+        # Room list in a scrollable frame
         room_frame = tk.Frame(self, bg="#f0f0f0")
         room_frame.pack(fill=tk.BOTH, expand=True, pady=20, padx=50)
 
@@ -61,102 +87,23 @@ class SmartHouseGUI(tk.Tk):
         room_scroll_y = tk.Scrollbar(room_frame, orient="vertical", command=room_canvas.yview)
         room_canvas.configure(yscrollcommand=room_scroll_y.set)
 
-        self.room_list_frame = tk.Frame(room_canvas, bg="#f0f0f0")
-        self.room_list_frame.grid_columnconfigure(0, weight=1)
-        self.room_list_frame.grid_columnconfigure(1, weight=1)
-
-        room_canvas.create_window((0, 0), window=self.room_list_frame, anchor="nw")
+        room_list_frame = tk.Frame(room_canvas, bg="#f0f0f0")
+        room_canvas.create_window((0, 0), window=room_list_frame, anchor="nw")
         room_canvas.pack(side="left", fill="both", expand=True)
         room_scroll_y.pack(side="right", fill="y")
 
-        # Populate room list
-        self.add_room_widgets()
+        # Add room widgets
+        self.add_room_widgets(room_list_frame)
 
-        # Adjust scroll region for room list
-        self.room_list_frame.bind(
+        # Adjust scroll region
+        room_list_frame.bind(
             "<Configure>", lambda e: room_canvas.configure(
                 scrollregion=room_canvas.bbox("all")
             )
         )
 
-    def add_info_widgets(self, parent):
-        # Icon paths
-        icon_paths = {
-            "clock": "clock_icon.png",
-            "temperature": "temperature_icon.png",
-            "humidity": "humidity_icon.png",
-            "energy": "energy_icon.png",
-            "light": "light_icon.png",
-            "aqi": "aqi_icon.png"
-        }
 
-        # Helper to load and display icons dynamically
-        def load_icon(icon_name):
-            try:
-                icon_path = os.path.join(self.icons_folder, icon_name)
-                icon_image = Image.open(icon_path).resize((70, 70), Image.LANCZOS)
-                return ImageTk.PhotoImage(icon_image)
-            except Exception as e:
-                print(f"Error loading icon {icon_name}: {e}")
-                return None
-
-        # Add widgets with icons
-        self.clock_icon = load_icon(icon_paths["clock"])
-        clock_label = tk.Label(parent, image=self.clock_icon, bg="#f0f0f0")
-        clock_label.pack(side=tk.LEFT, padx=10)
-
-        self.time_label = tk.Label(
-            parent, text="", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.time_label.pack(side=tk.LEFT, padx=10)
-        self.update_time()
-
-        self.temp_icon = load_icon(icon_paths["temperature"])
-        temp_label = tk.Label(parent, image=self.temp_icon, bg="#f0f0f0")
-        temp_label.pack(side=tk.LEFT, padx=10)
-
-        self.temperature_label = tk.Label(
-            parent, text="22°C", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.temperature_label.pack(side=tk.LEFT, padx=10)
-
-        self.humidity_icon = load_icon(icon_paths["humidity"])
-        humidity_label = tk.Label(parent, image=self.humidity_icon, bg="#f0f0f0")
-        humidity_label.pack(side=tk.LEFT, padx=10)
-
-        self.humidity_label = tk.Label(
-            parent, text="50%", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.humidity_label.pack(side=tk.LEFT, padx=10)
-
-        self.energy_icon = load_icon(icon_paths["energy"])
-        energy_label = tk.Label(parent, image=self.energy_icon, bg="#f0f0f0")
-        energy_label.pack(side=tk.LEFT, padx=10)
-
-        self.energy_label = tk.Label(
-            parent, text="450 kWh", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.energy_label.pack(side=tk.LEFT, padx=10)
-
-        self.light_icon = load_icon(icon_paths["light"])
-        light_label = tk.Label(parent, image=self.light_icon, bg="#f0f0f0")
-        light_label.pack(side=tk.LEFT, padx=10)
-
-        self.light_label = tk.Label(
-            parent, text="75%", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.light_label.pack(side=tk.LEFT, padx=10)
-
-        self.aqi_icon = load_icon(icon_paths["aqi"])
-        aqi_label = tk.Label(parent, image=self.aqi_icon, bg="#f0f0f0")
-        aqi_label.pack(side=tk.LEFT, padx=10)
-
-        self.aqi_label = tk.Label(
-            parent, text="AQI: 45", font=("Helvetica", 28), bg="#f0f0f0", fg="#333333"
-        )
-        self.aqi_label.pack(side=tk.LEFT, padx=10)
-
-    def add_room_widgets(self):
+    def add_room_widgets(self, parent):
         rooms = [
             ("Bedroom", "bedroom_icon.png"),
             ("Kids Room", "kidsroom_icon.png"),
@@ -180,18 +127,15 @@ class SmartHouseGUI(tk.Tk):
                 print(f"Error loading icon for {room_name}: {e}")
                 room_icon = None
 
-            btn_frame = tk.Frame(self.room_list_frame, bg="#d9d9d9", bd=2, relief="raised", width=400, height=300)
-            btn_frame.grid(row=row, column=col, padx=20, pady=20, sticky="nsew")
-            btn_frame.grid_propagate(False)  # Prevent frame resizing to fit content
-
             btn = tk.Button(
-                btn_frame, text=room_name, font=("Helvetica", 16),
+                parent, text=room_name, font=("Helvetica", 16),
                 bg="#ffffff", fg="#000000", image=room_icon, compound="top",
-                width=400, height=300, command=lambda room=room_name: self.on_room_click(room)
+                width=200, height=200, command=lambda room=room_name: self.on_room_click(room)
             )
             btn.image = room_icon
-            btn.pack(fill="both", expand=True)
-            
+            btn.grid(row=row, column=col, padx=20, pady=20)
+            self.apply_hover_effect(btn, hover_bg="#e6e6e6", normal_bg="#ffffff")  # Light gray highlight for rooms
+
     def on_room_click(self, room_name):
         """Handle room button clicks."""
         new_window = tk.Toplevel(self)
@@ -199,11 +143,25 @@ class SmartHouseGUI(tk.Tk):
         new_window.geometry("800x600")
         new_window.configure(bg="#f0f0f0")
 
-        title = tk.Label(
-            new_window, text=f"{room_name} Controls",
+        # Create a header frame for the Go Back button and title
+        header_frame = tk.Frame(new_window, bg="#f0f0f0")
+        header_frame.pack(fill=tk.X, pady=10)
+
+        # Go Back Button with left arrow symbol
+        back_button = tk.Button(
+            header_frame, text="⬅", font=("Helvetica", 18, "bold"),
+            bg="#f0f0f0", fg="#4CAF50", borderwidth=0,
+            command=lambda: [new_window.destroy(), self.open_room_list()]
+        )
+        back_button.pack(side=tk.LEFT, padx=10)
+        self.apply_hover_effect(back_button, hover_fg="#007bff", normal_fg="#4CAF50")  # Blue highlight effect for arrow
+
+        # Title aligned with the Go Back button
+        title_label = tk.Label(
+            header_frame, text=f"{room_name} Controls",
             font=("Helvetica", 24), bg="#f0f0f0", fg="#333333"
         )
-        title.pack(pady=10)
+        title_label.pack(side=tk.LEFT, padx=10)
         if room_name == "Living Room":
             self.open_living_room(new_window)
         elif room_name == "Kitchen":
@@ -220,6 +178,7 @@ class SmartHouseGUI(tk.Tk):
             self.open_kids_room(new_window)
         else:
             print(f"No page implemented for {room_name}.")
+    
 
     def open_living_room(self, window):
         """Add Living Room controls."""
@@ -358,11 +317,6 @@ class SmartHouseGUI(tk.Tk):
         frame.pack(pady=10, fill="x")
         for btn_text in button_texts:
             tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
-    
-    def update_time(self):
-        current_time = datetime.now().strftime("%H:%M:%S")
-        self.time_label.configure(text=current_time)
-        self.after(1000, self.update_time)
 
 if __name__ == "__main__":
     app = SmartHouseGUI()
