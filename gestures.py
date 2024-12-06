@@ -152,16 +152,11 @@ while cap.isOpened():
             y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
             
             # Draw a circle to indicate the cursor
-            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)
-            
-
-
-            
+            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)                     
             if prev_x is not None and prev_y is not None:
                 # Calculate movement
                 dx = x - prev_x
-                dy = y - prev_y
-                
+                dy = y - prev_y          
                 # Determine gestures or actions
                 if abs(dx) > 20 or abs(dy) > 20:
                     if abs(dx) > abs(dy):  # Horizontal movement
@@ -177,6 +172,14 @@ while cap.isOpened():
             
             # Update previous coordinates
             prev_x, prev_y = x, y
+            
+            if is_peace_sign(landmarks):
+                print("Peace Sign Detected")
+                cv2.putText(frame, "Peace Sign", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+    
+    else:
+        prev_x, prev_y = None, None
+        
 
     # Display the frame
     cv2.imshow('Gesture Recognition', frame)
