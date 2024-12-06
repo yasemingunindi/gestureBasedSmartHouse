@@ -58,7 +58,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Go Back Button with left arrow symbol
         back_button = tk.Button(
-            header_frame, text="←", font=("Helvetica", 16),
+            header_frame, text="⬅", font=("Helvetica", 18, "bold"),
             bg="#f0f0f0", fg="#4CAF50", borderwidth=0,
             command=self.show_main_menu
         )
@@ -140,7 +140,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Go Back Button with left arrow symbol
         back_button = tk.Button(
-            header_frame, text="←", font=("Helvetica", 16),
+            header_frame, text="⬅", font=("Helvetica", 18, "bold"),
             bg="#f0f0f0", fg="#4CAF50", borderwidth=0,
             command=lambda: [new_window.destroy(), self.open_room_list()]
         )
