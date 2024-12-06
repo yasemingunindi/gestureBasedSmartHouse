@@ -62,23 +62,10 @@ def is_three(landmarks):
 
 def is_thumbs_up(landmarks):
     """Check if the thumb is pointing up."""
-    return (landmarks[4].y < landmarks[3].y and
-            landmarks[4].x < landmarks[3].x)
-
+    return (landmarks[4].y < landmarks[3].y)
 def is_thumbs_down(landmarks):
     """Check if the thumb is pointing down."""
-    return (landmarks[4].y > landmarks[3].y and
-            landmarks[4].x < landmarks[3].x)
-
-def is_thumbs_left(landmarks):
-    """Check if the thumb is rotated 90 degrees to the left."""
-    return (landmarks[4].y > landmarks[3].y and
-            landmarks[4].x > landmarks[3].x)
-
-def is_thumbs_right(landmarks):
-    """Check if the thumb is rotated 90 degrees to the right."""
-    return (landmarks[4].y < landmarks[3].y and
-            landmarks[4].x > landmarks[3].x)
+    return (landmarks[4].y > landmarks[3].y)
 
 def is_good_gesture(landmarks):
     """Check if the 'OK' or 'Good' gesture is made."""
@@ -86,6 +73,32 @@ def is_good_gesture(landmarks):
         (landmarks[8].x, landmarks[8].y), (landmarks[4].x, landmarks[4].y)
     )
     return distance < 0.05
+
+def is_rockn_roll(landmarks):
+    """Check if rock n roll gesture is made."""
+    # Index and Pinky fingers are up
+    index_up = is_finger_up(landmarks, 8, 7, 6)
+    pinky_up = is_finger_up(landmarks, 20, 19, 18)
+    
+    # Other fingers (middle, ring, and thumb) are down
+    middle_down = not is_finger_up(landmarks, 12, 11, 10)
+    ring_down = not is_finger_up(landmarks, 16, 15, 14)
+    
+    return index_up and pinky_up and middle_down and ring_down
+
+def is_open(landmarks):
+    """
+    Check if the 'Four' gesture is made.
+    :param landmarks: List of hand landmarks.
+    :return: Boolean indicating if the Four gesture is detected.
+    """
+    # Index, Middle, Ring, and Pinky fingers are up
+    index_up = is_finger_up(landmarks, 8, 7, 6)
+    middle_up = is_finger_up(landmarks, 12, 11, 10)
+    ring_up = is_finger_up(landmarks, 16, 15, 14)
+    pinky_up = is_finger_up(landmarks, 20, 19, 18)
+    
+    return index_up and middle_up and ring_up and pinky_up
 
 def detect_gesture(landmarks):
     """
@@ -99,14 +112,14 @@ def detect_gesture(landmarks):
         return "PEACE SIGN"
     elif is_three(landmarks):
         return "THREE"
+    elif is_rockn_roll(landmarks):
+        return "ROCK'N ROLL!!!"
+    elif is_open(landmarks):
+        return(0)
     elif is_thumbs_up(landmarks):
         return "THUMBS UP"
     elif is_thumbs_down(landmarks):
         return "THUMBS DOWN"
-    elif is_thumbs_left(landmarks):
-        return "THUMBS LEFT"
-    elif is_thumbs_right(landmarks):
-        return "THUMBS RIGHT"
     elif is_good_gesture(landmarks):
         return "GOOD GESTURE"
     return "UNKNOWN GESTURE"
@@ -130,7 +143,8 @@ while cap.isOpened():
             mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             landmarks = hand_landmarks.landmark
             gesture = detect_gesture(landmarks)
-            print(gesture)
+            if(gesture != 0):
+                print(gesture)
 
     # Display the frame
     cv2.imshow('Gesture Recognition', frame)
