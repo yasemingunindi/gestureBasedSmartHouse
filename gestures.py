@@ -9,6 +9,8 @@ mp_drawing = mp.solutions.drawing_utils
 # Start video capture
 cap = cv2.VideoCapture(0)
 
+prev_x, prev_y = None, None
+
 def calculate_distance(point1, point2):
     """
     Calculate the Euclidean distance between two points.
@@ -145,6 +147,50 @@ while cap.isOpened():
             gesture = detect_gesture(landmarks)
             if(gesture != 0):
                 print(gesture)
+            # Get the tip of the index finger
+            x = int(landmarks[8].x * frame.shape[1])  # Convert normalized x to pixel
+            y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
+            
+            # Draw a circle to indicate the cursor
+            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)
+            
+            if gesture == "PEACE SIGN":
+                # Scroll behavior
+                wrist_y = landmarks[0].y
+                
+                if prev_y is not None:
+                    diff = wrist_y - prev_y
+                    if diff > 0.05:  # Moving down
+                        print("Scrolling Down")
+                        cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    elif diff < -0.05:  # Moving up
+                        print("Scrolling Up")
+                        cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                prev_y = wrist_y
+            else:
+                prev_y = None  # Reset scroll variables if peace sign is not active
+
+            
+            if prev_x is not None and prev_y is not None:
+                # Calculate movement
+                dx = x - prev_x
+                dy = y - prev_y
+                
+                # Determine gestures or actions
+                if abs(dx) > 20 or abs(dy) > 20:
+                    if abs(dx) > abs(dy):  # Horizontal movement
+                        if dx > 0:
+                            print("Moving Right")
+                        else:
+                            print("Moving Left")
+                    else:  # Vertical movement
+                        if dy > 0:
+                            print("Moving Down")
+                        else:
+                            print("Moving Up")
+            
+            # Update previous coordinates
+            prev_x, prev_y = x, y
 
     # Display the frame
     cv2.imshow('Gesture Recognition', frame)
