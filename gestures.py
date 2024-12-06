@@ -154,21 +154,7 @@ while cap.isOpened():
             # Draw a circle to indicate the cursor
             cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)
             
-            if gesture == "PEACE SIGN":
-                # Scroll behavior
-                wrist_y = landmarks[0].y
-                
-                if prev_y is not None:
-                    diff = wrist_y - prev_y
-                    if diff > 0.05:  # Moving down
-                        print("Scrolling Down")
-                        cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    elif diff < -0.05:  # Moving up
-                        print("Scrolling Up")
-                        cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                prev_y = wrist_y
-            else:
-                prev_y = None  # Reset scroll variables if peace sign is not active
+
 
             
             if prev_x is not None and prev_y is not None:
