@@ -30,8 +30,21 @@ def is_finger_up(landmarks, tip_idx, pip_idx, mcp_idx):
     return landmarks[tip_idx].y < landmarks[pip_idx].y < landmarks[mcp_idx].y
 
 def is_index_pointing_up(landmarks):
-    """Check if the index finger is pointing up."""
-    return is_finger_up(landmarks, 8, 7, 6)
+    """
+    Check if only the index finger is pointing up and all other fingers are down.
+    :param landmarks: List of hand landmarks.
+    :return: Boolean indicating if only the index finger is up.
+    """
+    # Index finger is up
+    index_up = is_finger_up(landmarks, 8, 7, 6)
+    
+    # Other fingers are down
+    middle_down = not is_finger_up(landmarks, 12, 11, 10)  # Middle finger down
+    ring_down = not is_finger_up(landmarks, 16, 15, 14)  # Ring finger down
+    pinky_down = not is_finger_up(landmarks, 20, 19, 18)  # Pinky finger down
+    
+    return index_up and middle_down and ring_down and pinky_down
+
 
 def is_peace_sign(landmarks):
     """Check if the peace sign (index and middle fingers up) is shown."""
