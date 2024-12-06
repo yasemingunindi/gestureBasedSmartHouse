@@ -17,6 +17,11 @@ class SmartHouseGUI(tk.Tk):
 
         # Initialize the welcome screen
         self.show_main_menu()
+    
+    def apply_hover_effect(self, button, hover_bg="#d9d9d9", hover_fg="#000000", normal_bg="#ffffff", normal_fg="#000000"):
+        """Apply hover effect to a button."""
+        button.bind("<Enter>", lambda e: button.config(bg=hover_bg, fg=hover_fg))
+        button.bind("<Leave>", lambda e: button.config(bg=normal_bg, fg=normal_fg))
 
     def show_main_menu(self):
         """Display the main menu with a welcome message and a 'Menu' button."""
@@ -44,6 +49,8 @@ class SmartHouseGUI(tk.Tk):
             command=self.open_room_list
         )
         menu_button.pack(pady=50)
+        self.apply_hover_effect(menu_button, hover_bg="#45a049", normal_bg="#4CAF50")  # Green highlight effect
+
 
 
     def open_room_list(self):
@@ -63,6 +70,7 @@ class SmartHouseGUI(tk.Tk):
             command=self.show_main_menu
         )
         back_button.pack(side=tk.LEFT, padx=10)
+        self.apply_hover_effect(back_button, hover_fg="#007bff", normal_fg="#4CAF50")  # Blue highlight effect for arrow
 
         # Title aligned with the Go Back button
         title_label = tk.Label(
@@ -126,6 +134,7 @@ class SmartHouseGUI(tk.Tk):
             )
             btn.image = room_icon
             btn.grid(row=row, column=col, padx=20, pady=20)
+            self.apply_hover_effect(btn, hover_bg="#e6e6e6", normal_bg="#ffffff")  # Light gray highlight for rooms
 
     def on_room_click(self, room_name):
         """Handle room button clicks."""
@@ -145,6 +154,7 @@ class SmartHouseGUI(tk.Tk):
             command=lambda: [new_window.destroy(), self.open_room_list()]
         )
         back_button.pack(side=tk.LEFT, padx=10)
+        self.apply_hover_effect(back_button, hover_fg="#007bff", normal_fg="#4CAF50")  # Blue highlight effect for arrow
 
         # Title aligned with the Go Back button
         title_label = tk.Label(
