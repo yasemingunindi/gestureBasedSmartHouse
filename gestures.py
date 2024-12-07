@@ -165,7 +165,7 @@ while cap.isOpened():
                 print(f"DEBUG: Calculated wrist_y = {wrist_y}, prev_wrist_y = {prev_wrist_y}")
 
                 # Scroll behavior
-                if prev_wrist_y is not None:
+                if prev_wrist_y is None:
                     prev_wrist_y = wrist_y
                     print(f"DEBUG: Initializing prev_wrist_y = {prev_wrist_y}")
                 else:
@@ -204,7 +204,6 @@ while cap.isOpened():
             
             # Update previous coordinates
             prev_x, prev_y = x, y
-            prev_wrist_y = None
                 
     else:
         prev_x, prev_y = None, None
