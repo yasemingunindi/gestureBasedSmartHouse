@@ -310,6 +310,10 @@ class SmartHouseGUI(tk.Tk):
         self.add_lights_controls(window)
         self.add_appliance_controls(window, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
 
+    def open_kids_room(self, window):
+        self.add_lights_controls(window)
+        self.add_ac_controls(window)  
+    
     def add_lights_controls(self, window):
         """Add light controls with power button, light bulb icon, color buttons, and brightness slider."""
         frame = tk.LabelFrame(window, text="Lights", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
@@ -466,9 +470,79 @@ class SmartHouseGUI(tk.Tk):
         """Add TV controls."""
         frame = tk.LabelFrame(window, text="TV", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
-        buttons = ["On", "Off", "Channel Up", "Channel Down", "Volume Up", "Volume Down", "Change Source"]
-        for btn_text in buttons:
-            tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
+
+        # Left panel for TV image and On/Off button
+        left_panel = tk.Frame(frame, bg="#f0f0f0")
+        left_panel.pack(side=tk.LEFT, padx=10)
+
+        try:
+            tv_icon_path = os.path.join(self.icons_folder, "tv_icon.png")
+            self.tv_icon = Image.open(tv_icon_path).resize((200, 150), Image.LANCZOS)  # Resize the image
+            self.tv_icon_photo = ImageTk.PhotoImage(self.tv_icon)  # Convert to PhotoImage
+            self.tv_label = tk.Label(left_panel, image=self.tv_icon_photo)  # Use the correct PhotoImage object
+            self.tv_label.pack(pady=10)
+        except FileNotFoundError:
+            self.tv_label = tk.Label(left_panel, text="[TV Image Missing]", bg="#f0f0f0", font=("Helvetica", 14))
+            self.tv_label.pack(pady=10)
+
+        # On/Off toggle button
+        self.tv_state = False  # TV is initially off
+        self.toggle_button = tk.Button(
+            left_panel,
+            text="Off",
+            bg="red",
+            fg="white",
+            font=("Helvetica", 12),
+            width=10,
+            command=self.toggle_tv
+        )
+        self.toggle_button.pack(pady=5)
+        self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+
+        # Middle panel for Channel controls
+        middle_panel = tk.Frame(frame, bg="#f0f0f0")
+        middle_panel.pack(side=tk.LEFT, padx=10)
+
+        channel_label = tk.Label(middle_panel, text="Channel", bg="#f0f0f0", font=("Helvetica", 12))
+        channel_label.pack(pady=5)
+
+        channel_up = tk.Button(middle_panel, text="▲", font=("Helvetica", 14), command=self.channel_up)
+        channel_up.pack(pady=5)
+        self.apply_hover_effect(channel_up, hover_bg="lightblue", normal_bg="SystemButtonFace")
+
+        channel_down = tk.Button(middle_panel, text="▼", font=("Helvetica", 14), command=self.channel_down)
+        channel_down.pack(pady=5)
+        self.apply_hover_effect(channel_down, hover_bg="lightblue", normal_bg="SystemButtonFace")
+
+        # Right panel for Volume control
+        right_panel = tk.Frame(frame, bg="#f0f0f0")
+        right_panel.pack(side=tk.LEFT, padx=10)
+
+        volume_label = tk.Label(right_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
+        volume_label.pack(pady=5)
+
+        self.volume_scale = ttk.Scale(right_panel, from_=0, to=100, orient="vertical", command=self.change_volume)
+        self.volume_scale.set(50)  # Default volume level
+        self.volume_scale.pack()
+
+    def toggle_tv(self):
+        """Toggle the TV on and off."""
+        self.tv_state = not self.tv_state
+        if self.tv_state:
+            self.toggle_button.config(text="On", bg="green", fg="white")
+            self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="green", hover_fg="black", normal_fg="white")
+        else:
+            self.toggle_button.config(text="Off", bg="red", fg="white")
+            self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+    def channel_up(self):
+        print("Channel Up")
+
+    def channel_down(self):
+        print("Channel Down")
+
+    def change_volume(self, val):
+        print(f"Volume: {int(float(val))}")
+
 
     def add_ac_controls(self, window):
         """Add Air Conditioner controls."""
