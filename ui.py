@@ -279,10 +279,6 @@ class SmartHouseGUI(tk.Tk):
             self.add_appliance_controls(content_frame, "Garage Door", ["Open", "Close"])
         # Add other room-specific controls similarly
 
-
-
-    
-
     def open_living_room(self, window):
         """Add Living Room controls."""
         self.add_lights_controls(window)
@@ -556,9 +552,100 @@ class SmartHouseGUI(tk.Tk):
         """Add Music System controls."""
         frame = tk.LabelFrame(window, text="Music System", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
-        buttons = ["On", "Off", "Volume Up", "Volume Down", "Next Song", "Previous Song"]
-        for btn_text in buttons:
-            tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
+
+        # Left panel for Icon and On/Off button
+        left_panel = tk.Frame(frame, bg="#f0f0f0")
+        left_panel.pack(side=tk.LEFT, padx=10)
+
+        # Load and display Music Icon
+        try:
+            music_icon_path = os.path.join(self.icons_folder, "music_icon.png")  # Ensure you have this file
+            self.music_icon = Image.open(music_icon_path).resize((200, 200), Image.LANCZOS)  # Resize the image
+            self.music_icon_photo = ImageTk.PhotoImage(self.music_icon)
+            self.music_icon_label = tk.Label(left_panel, image=self.music_icon_photo, bg="#f0f0f0")
+            self.music_icon_label.pack(pady=10)
+        except FileNotFoundError:
+            self.music_icon_label = tk.Label(left_panel, text="[Music Icon Missing]", bg="#f0f0f0", font=("Helvetica", 12))
+            self.music_icon_label.pack(pady=10)
+
+        # On/Off button
+        self.music_state = False  # Music system initially off
+        self.music_toggle_button = tk.Button(
+            left_panel,
+            text="Off",
+            bg="red",
+            fg="white",
+            font=("Helvetica", 12),
+            width=10,
+            command=self.toggle_music
+        )
+        self.music_toggle_button.pack(pady=5)
+        self.apply_hover_effect(self.music_toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+
+        # Middle panel for volume controls
+        middle_panel = tk.Frame(frame, bg="#f0f0f0")
+        middle_panel.pack(side=tk.LEFT, padx=10)
+
+        volume_label = tk.Label(middle_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
+        volume_label.pack(pady=5)
+
+        self.music_volume_scale = ttk.Scale(
+            middle_panel, from_=0, to=100, orient="vertical", command=self.change_music_volume
+        )
+        self.music_volume_scale.set(50)  # Default volume level
+        self.music_volume_scale.pack()
+
+        # Right panel for song controls
+        right_panel = tk.Frame(frame, bg="#f0f0f0")
+        right_panel.pack(side=tk.LEFT, padx=10)
+
+        song_controls_frame = tk.Frame(right_panel, bg="#f0f0f0")
+        song_controls_frame.pack(pady=5)
+
+        prev_button = tk.Button(
+            song_controls_frame,
+            text="◀ Previous Song",
+            font=("Helvetica", 12),
+            width=15,
+            command=self.previous_song
+        )
+        prev_button.pack(side=tk.LEFT, padx=5)
+        self.apply_hover_effect(prev_button, hover_bg="lightblue", normal_bg="SystemButtonFace")
+
+        next_button = tk.Button(
+            song_controls_frame,
+            text="Next Song ▶",
+            font=("Helvetica", 12),
+            width=15,
+            command=self.next_song
+        )
+        next_button.pack(side=tk.LEFT, padx=5)
+        self.apply_hover_effect(next_button, hover_bg="lightblue", normal_bg="SystemButtonFace")
+
+    def toggle_music(self):
+        """Toggle the music system on and off."""
+        self.music_state = not self.music_state
+        if self.music_state:
+            self.music_toggle_button.config(text="On", bg="green", fg="white")
+            self.apply_hover_effect(self.music_toggle_button, hover_bg="lightblue", normal_bg="green", hover_fg="black", normal_fg="white")
+            print("Music System: On")
+        else:
+            self.music_toggle_button.config(text="Off", bg="red", fg="white")
+            self.apply_hover_effect(self.music_toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+            print("Music System: Off")
+
+    def change_music_volume(self, val):
+        """Adjust the music volume."""
+        volume = int(float(val))
+        print(f"Music Volume: {volume}")
+
+    def next_song(self):
+        """Skip to the next song."""
+        print("Playing Next Song")
+
+    def previous_song(self):
+        """Play the previous song."""
+        print("Playing Previous Song")
 
     def add_vacuum_controls(self, window):
         """Add Robot Vacuum Cleaner controls."""
