@@ -521,7 +521,7 @@ class SmartHouseGUI(tk.Tk):
         volume_label = tk.Label(right_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
         volume_label.pack(pady=5)
 
-        self.volume_scale = ttk.Scale(right_panel, from_=0, to=100, orient="vertical", command=self.change_volume)
+        self.volume_scale = ttk.Scale(right_panel, from_=100, to=0, orient="vertical", command=self.change_volume)
         self.volume_scale.set(50)  # Default volume level
         self.volume_scale.pack()
 
