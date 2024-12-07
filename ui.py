@@ -521,7 +521,7 @@ class SmartHouseGUI(tk.Tk):
         volume_label = tk.Label(right_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
         volume_label.pack(pady=5)
 
-        self.volume_scale = ttk.Scale(right_panel, from_=0, to=100, orient="vertical", command=self.change_volume)
+        self.volume_scale = ttk.Scale(right_panel, from_=100, to=0, orient="vertical", command=self.change_volume)
         self.volume_scale.set(50)  # Default volume level
         self.volume_scale.pack()
 
@@ -575,10 +575,28 @@ class SmartHouseGUI(tk.Tk):
         for btn_text in button_texts:
             tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
     
+    def on_hover(self, event, button, hover_bg):
+        """Change button background color on hover."""
+        button.config(bg=hover_bg)
+
+    def on_leave(self, event, button, default_bg):
+        """Revert button background color when not hovering."""
+        button.config(bg=default_bg)
+
     def add_thermostat_controls(self, window):
-        """Add thermostat controls with three columns: Temperature, Mode, and Fan."""
+        """Add thermostat controls with Temperature, Mode, Fan, and a centered fan icon."""
         frame = tk.LabelFrame(window, text="Thermostat", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
+
+        # Initialize current fan state
+        self.current_fan_state = "low"
+        # Initialize fan icons dictionary
+        self.fan_icons = {
+            "low": os.path.join(self.icons_folder, "fan_on_low_icon.png"),
+            "medium": os.path.join(self.icons_folder, "fan_on_medium_icon.png"),
+            "high": os.path.join(self.icons_folder, "fan_on_high_icon.png"),
+            "off": os.path.join(self.icons_folder, "fan_off_icon.png"),
+        }
 
         # Create a container frame for the layout
         layout_frame = tk.Frame(frame, bg="#f0f0f0")
@@ -609,42 +627,59 @@ class SmartHouseGUI(tk.Tk):
         self.mode_buttons = {}
         for mode, color in [("Heating", "orange"), ("Cooling", "light blue"), ("Auto", "light green")]:
             button = tk.Button(
-                mode_frame, text=mode, bg=color, font=("Helvetica", 12),
+                mode_frame, text=mode, bg=color, font=("Helvetica", 25),
                 command=lambda m=mode: self.set_mode(m)
             )
             button.pack(pady=5, fill=tk.X)
             self.mode_buttons[mode] = button
 
+            # Add hover effect
+            button.bind("<Enter>", lambda e, btn=button, hover_bg="#ffcccb": self.on_hover(e, btn, hover_bg))
+            button.bind("<Leave>", lambda e, btn=button, default_bg=color: self.on_leave(e, btn, default_bg))
+
         # Column 3: Fan Control
         fan_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        fan_frame.grid(row=0, column=2, padx=10)
+        fan_frame.grid(row=0, column=3, padx=10)
 
         tk.Label(fan_frame, text="Fan", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
-
-        # Load fan icons
-        self.fan_icons = {
-            "low": os.path.join(self.icons_folder, "fan_on_low_icon.png"),
-            "medium": os.path.join(self.icons_folder, "fan_on_medium_icon.png"),
-            "high": os.path.join(self.icons_folder, "fan_on_high_icon.png"),
-            "off": os.path.join(self.icons_folder, "fan_off_icon.png"),
-        }
-
-        self.current_fan_state = "low"
-
-        self.fan_icon_label = tk.Label(fan_frame, bg="#f0f0f0")
-        self.update_fan_icon()
-        self.fan_icon_label.pack(pady=5)
 
         self.fan_buttons = {}
         for state in ["Low", "Medium", "High", "Off"]:
             button = tk.Button(
-                fan_frame, text=state, font=("Helvetica", 10), command=lambda s=state.lower(): self.set_fan_state(s)
+                fan_frame, text=state, font=("Helvetica", 20),
+                command=lambda s=state.lower(): self.set_fan_state(s)
             )
             button.pack(pady=5, fill=tk.X)
             self.fan_buttons[state.lower()] = button
 
+            # Add hover effect
+            button.bind("<Enter>", lambda e, btn=button, hover_bg="#ffcccb": self.on_hover(e, btn, hover_bg))
+            button.bind("<Leave>", lambda e, btn=button, default_bg="#f0f0f0": self.on_leave(e, btn, default_bg))
+
         # Highlight default fan state
         self.highlight_fan_button("low")
+
+        # Center Fan Icon
+        fan_icon_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        fan_icon_frame.grid(row=0, column=2, padx=10)
+
+        self.fan_icon_label = tk.Label(fan_icon_frame, bg="#f0f0f0")
+        self.update_fan_icon()
+        self.fan_icon_label.pack(pady=5)
+
+
+
+
+    def load_and_resize_icon(self, filename, width, height):
+        """Load and resize an image file."""
+        try:
+            image_path = os.path.join(self.icons_folder, filename)
+            img = Image.open(image_path)  # Open the image file
+            img = img.resize((width, height), Image.Resampling.LANCZOS)  # Resize the image
+            return ImageTk.PhotoImage(img)  # Convert to PhotoImage for tkinter
+        except Exception as e:
+            print(f"Error loading fan icon: {e}")
+            return None  # Return None if there's an error
 
     def update_temperature(self, value):
         """Update the temperature label dynamically."""
@@ -664,15 +699,32 @@ class SmartHouseGUI(tk.Tk):
         self.highlight_fan_button(state)
         print(f"Fan set to: {state.capitalize()}")
 
-    def update_fan_icon(self):
-        """Update the displayed fan icon based on the current state."""
+    def update_fan_icon(self, width=185, height=185):
+        """Update the displayed fan icon based on the current state and specified size."""
         try:
-            img_path = self.fan_icons[self.current_fan_state]
-            img = Image.open(img_path).resize((50, 50), Image.LANCZOS)
+            # Retrieve the file path for the current fan state
+            img_path = self.fan_icons.get(self.current_fan_state)
+            
+            if not img_path:
+                raise FileNotFoundError(f"Icon for state '{self.current_fan_state}' not found.")
+            
+            # Open and resize the image
+            img = Image.open(img_path).resize((width, height), Image.Resampling.LANCZOS)
+            
+            # Convert the resized image to a PhotoImage for tkinter
             self.fan_icon = ImageTk.PhotoImage(img)
+            
+            # Update the fan icon label with the new image
             self.fan_icon_label.config(image=self.fan_icon)
+        except FileNotFoundError as fnfe:
+            print(f"File not found: {fnfe}")
+            self.fan_icon_label.config(text="Icon Missing", image="")
         except Exception as e:
-            print(f"Error loading fan icon: {e}")
+            print(f"Error updating fan icon: {e}")
+            self.fan_icon_label.config(text="Error", image="")
+
+
+
 
     def highlight_fan_button(self, state):
         """Highlight the active fan button."""
