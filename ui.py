@@ -213,17 +213,16 @@ class SmartHouseGUI(tk.Tk):
 
 
     def on_room_click(self, room_name):
-        """Handle room button clicks."""
+        """Handle room button clicks with scrollable content."""
         new_window = tk.Toplevel(self)
         new_window.title(f"{room_name} Controls")
-        new_window.geometry("800x600")
+        new_window.geometry("600x600")
         new_window.configure(bg="#f0f0f0")
 
-        # Create a header frame for the Go Back button and title
+        # Header for the room
         header_frame = tk.Frame(new_window, bg="#f0f0f0")
         header_frame.pack(fill=tk.X, pady=10)
 
-        # Go Back Button with left arrow symbol
         back_button = tk.Button(
             header_frame, text="⬅", font=("Helvetica", 18, "bold"),
             bg="#f0f0f0", fg="#729efd", borderwidth=0,
@@ -232,28 +231,56 @@ class SmartHouseGUI(tk.Tk):
         back_button.pack(side=tk.LEFT, padx=10)
         self.apply_hover_effect(back_button, hover_bg="#d9d9d9", normal_bg="#f0f0f0", hover_fg="#0cead9", normal_fg="#729efd")
 
-        # Title aligned with the Go Back button
         title_label = tk.Label(
             header_frame, text=f"{room_name} Controls",
             font=("Helvetica", 24), bg="#f0f0f0", fg="#333333"
         )
         title_label.pack(side=tk.LEFT, padx=10)
+
+        # Scrollable frame
+        scrollable_frame = tk.Frame(new_window, bg="#f0f0f0")
+        scrollable_frame.pack(fill=tk.BOTH, expand=True)
+
+        canvas = tk.Canvas(scrollable_frame, bg="#f0f0f0")
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scrollbar = tk.Scrollbar(scrollable_frame, orient="vertical", command=canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        content_frame = tk.Frame(canvas, bg="#f0f0f0")
+        canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+        # Adjust scroll region dynamically
+        content_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        # Add common controls to every room
+        self.add_thermostat_controls(content_frame)
+        self.add_lights_controls(content_frame)
+
+        # Add specific controls for each room
         if room_name == "Living Room":
-            self.open_living_room(new_window)
+            self.add_tv_controls(content_frame)
+            self.add_music_controls(content_frame)
+            self.add_ac_controls(content_frame)
         elif room_name == "Kitchen":
-            self.open_kitchen(new_window)
+            self.add_appliance_controls(content_frame, "Air Fryer", ["Temp Up", "Temp Down", "Time Up", "Time Down", "Start/Stop"])
+            self.add_appliance_controls(content_frame, "Coffee Machine", ["Program Selection", "On/Off"])
         elif room_name == "Bedroom":
-            self.open_bedroom(new_window)
+            self.add_appliance_controls(content_frame, "Curtains", ["Open", "Close"])
+            self.add_ac_controls(content_frame)
         elif room_name == "Bathroom":
-            self.open_bathroom(new_window)
-        elif room_name == "Office":
-            self.open_bathroom(new_window)
+            self.add_appliance_controls(content_frame, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
         elif room_name == "Garage":
-            self.open_garage(new_window)
-        elif room_name == "Kids Room":
-            self.open_kids_room(new_window)
-        else:
-            print(f"No page implemented for {room_name}.")
+            self.add_appliance_controls(content_frame, "Garage Door", ["Open", "Close"])
+        # Add other room-specific controls similarly
+
+
+
     
 
     def open_living_room(self, window):
@@ -273,6 +300,7 @@ class SmartHouseGUI(tk.Tk):
 
     def open_bedroom(self, window):
         """Add Bedroom controls."""
+        self.add_thermostat_controls(window)
         self.add_lights_controls(window)
         self.add_appliance_controls(window, "Curtains", ["Open", "Close"])
         self.add_ac_controls(window)        
@@ -434,9 +462,6 @@ class SmartHouseGUI(tk.Tk):
             print("Turn on the light before changing the color.")
 
 
-
-
-
     def add_tv_controls(self, window):
         """Add TV controls."""
         frame = tk.LabelFrame(window, text="TV", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
@@ -461,14 +486,6 @@ class SmartHouseGUI(tk.Tk):
         for btn_text in buttons:
             tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
 
-    def add_thermostat_controls(self, window):
-        """Add Thermostat controls."""
-        frame = tk.LabelFrame(window, text="Thermostat", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
-        frame.pack(pady=10, fill="x")
-        buttons = ["Temp Up", "Temp Down"]
-        for btn_text in buttons:
-            tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
-
     def add_vacuum_controls(self, window):
         """Add Robot Vacuum Cleaner controls."""
         frame = tk.LabelFrame(window, text="Robot Vacuum Cleaner", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
@@ -483,6 +500,111 @@ class SmartHouseGUI(tk.Tk):
         frame.pack(pady=10, fill="x")
         for btn_text in button_texts:
             tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
+    
+    def add_thermostat_controls(self, window):
+        """Add thermostat controls with three columns: Temperature, Mode, and Fan."""
+        frame = tk.LabelFrame(window, text="Thermostat", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
+        frame.pack(pady=10, fill="x")
+
+        # Create a container frame for the layout
+        layout_frame = tk.Frame(frame, bg="#f0f0f0")
+        layout_frame.pack(fill="x", padx=20, pady=10)
+
+        # Column 1: Temperature Control
+        temp_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        temp_frame.grid(row=0, column=0, padx=10)
+
+        tk.Label(temp_frame, text="Temperature", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
+        self.temp_slider = tk.Scale(
+            temp_frame, from_=32, to=18, orient=tk.VERTICAL, length=200, width=40,
+            bg="#f0f0f0", troughcolor="#d3d3d3", activebackground="#4CAF50",
+            font=("Helvetica", 10), command=self.update_temperature
+        )
+        self.temp_slider.set(22)  # Default temperature
+        self.temp_slider.pack(pady=5)
+
+        self.temp_label = tk.Label(temp_frame, text="22°C", font=("Helvetica", 14), bg="#f0f0f0")
+        self.temp_label.pack(pady=5)
+
+        # Column 2: Mode Control
+        mode_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        mode_frame.grid(row=0, column=1, padx=10)
+
+        tk.Label(mode_frame, text="Mode", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
+
+        self.mode_buttons = {}
+        for mode, color in [("Heating", "orange"), ("Cooling", "light blue"), ("Auto", "light green")]:
+            button = tk.Button(
+                mode_frame, text=mode, bg=color, font=("Helvetica", 12),
+                command=lambda m=mode: self.set_mode(m)
+            )
+            button.pack(pady=5, fill=tk.X)
+            self.mode_buttons[mode] = button
+
+        # Column 3: Fan Control
+        fan_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        fan_frame.grid(row=0, column=2, padx=10)
+
+        tk.Label(fan_frame, text="Fan", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
+
+        # Load fan icons
+        self.fan_icons = {
+            "low": os.path.join(self.icons_folder, "fan_on_low_icon.png"),
+            "medium": os.path.join(self.icons_folder, "fan_on_medium_icon.png"),
+            "high": os.path.join(self.icons_folder, "fan_on_high_icon.png"),
+            "off": os.path.join(self.icons_folder, "fan_off_icon.png"),
+        }
+
+        self.current_fan_state = "low"
+
+        self.fan_icon_label = tk.Label(fan_frame, bg="#f0f0f0")
+        self.update_fan_icon()
+        self.fan_icon_label.pack(pady=5)
+
+        self.fan_buttons = {}
+        for state in ["Low", "Medium", "High", "Off"]:
+            button = tk.Button(
+                fan_frame, text=state, font=("Helvetica", 10), command=lambda s=state.lower(): self.set_fan_state(s)
+            )
+            button.pack(pady=5, fill=tk.X)
+            self.fan_buttons[state.lower()] = button
+
+        # Highlight default fan state
+        self.highlight_fan_button("low")
+
+    def update_temperature(self, value):
+        """Update the temperature label dynamically."""
+        self.temp_label.config(text=f"{int(float(value))}°C")
+
+    def set_mode(self, mode):
+        """Update the mode state and print the current selection."""
+        for button in self.mode_buttons.values():
+            button.config(relief=tk.RAISED)
+        self.mode_buttons[mode].config(relief=tk.SUNKEN)
+        print(f"Mode set to: {mode}")
+
+    def set_fan_state(self, state):
+        """Update the fan state and icon dynamically."""
+        self.current_fan_state = state
+        self.update_fan_icon()
+        self.highlight_fan_button(state)
+        print(f"Fan set to: {state.capitalize()}")
+
+    def update_fan_icon(self):
+        """Update the displayed fan icon based on the current state."""
+        try:
+            img_path = self.fan_icons[self.current_fan_state]
+            img = Image.open(img_path).resize((50, 50), Image.LANCZOS)
+            self.fan_icon = ImageTk.PhotoImage(img)
+            self.fan_icon_label.config(image=self.fan_icon)
+        except Exception as e:
+            print(f"Error loading fan icon: {e}")
+
+    def highlight_fan_button(self, state):
+        """Highlight the active fan button."""
+        for s, button in self.fan_buttons.items():
+            button.config(relief=tk.SUNKEN if s == state else tk.RAISED)
+
 
 if __name__ == "__main__":
     app = SmartHouseGUI()
