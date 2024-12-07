@@ -156,6 +156,7 @@ class SmartHouseGUI(tk.Tk):
 
         room_canvas = tk.Canvas(room_frame, bg="#5c3a92")  # Purple background
         room_scroll_x = tk.Scrollbar(room_frame, orient="horizontal", command=room_canvas.xview)
+        room_scroll_x.config(width=30)
         room_canvas.configure(xscrollcommand=room_scroll_x.set)
 
         room_list_frame = tk.Frame(room_canvas, bg="#5c3a92")  # Purple background
@@ -207,7 +208,7 @@ class SmartHouseGUI(tk.Tk):
                 width=200, height=200, command=lambda room=room_name: self.on_room_click(room)
             )
             btn.image = room_icon
-            btn.grid(row=row, column=col, padx=20, pady=20)
+            btn.grid(row=row, column=col, padx=20, pady=10)
             self.apply_hover_effect(btn, hover_bg="#0cead9", normal_bg="#ffffff")
 
 
@@ -229,7 +230,7 @@ class SmartHouseGUI(tk.Tk):
             command=lambda: [new_window.destroy(), self.open_room_list()]
         )
         back_button.pack(side=tk.LEFT, padx=10)
-        self.apply_hover_effect(back_button, hover_fg="#0cead9", normal_fg="#729efd")  # Blue highlight effect for arrow
+        self.apply_hover_effect(back_button, hover_bg="#d9d9d9", normal_bg="#f0f0f0", hover_fg="#0cead9", normal_fg="#729efd")
 
         # Title aligned with the Go Back button
         title_label = tk.Label(
@@ -281,70 +282,160 @@ class SmartHouseGUI(tk.Tk):
         self.add_lights_controls(window)
         self.add_appliance_controls(window, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
 
-
     def add_lights_controls(self, window):
-        """Add light controls."""
+        """Add light controls with power button, light bulb icon, color buttons, and brightness slider."""
         frame = tk.LabelFrame(window, text="Lights", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
 
         # Initial state of the light
         self.light_on = False
+        self.current_color = "white"
+        self.brightness = 0  # Default brightness at 0 when off
 
-        toggle_canvas = tk.Canvas(frame, width=100, height=50, bg="#f0f0f0", highlightthickness=0)
-        toggle_canvas.pack(pady=30)
+        # Load icons
+        try:
+            power_icon_path = os.path.join(self.icons_folder, "power_icon.png")
+            lights_off_icon_path = os.path.join(self.icons_folder, "lights_off_icon.png")
+            self.power_icon = ImageTk.PhotoImage(Image.open(power_icon_path).resize((50, 50), Image.LANCZOS))
+            self.lights_off_icon = ImageTk.PhotoImage(Image.open(lights_off_icon_path).resize((300, 300), Image.LANCZOS))
+            self.lights_on_icons = {
+                color: ImageTk.PhotoImage(Image.open(os.path.join(self.icons_folder, f"lights_on_{color}_icon.png")).resize((300, 300), Image.LANCZOS))
+                for color in ["white", "red", "orange", "yellow", "green", "blue", "purple", "pink"]
+            }
+        except Exception as e:
+            print(f"Error loading icons: {e}")
+            return
 
-        # Draw the toggle background
-        toggle_bg = toggle_canvas.create_rectangle(0, 10, 100, 50, fill="#D3D3D3", outline="")  # Gray for Off
+        self.lights_on_icon = self.lights_on_icons["white"]  # Default icon
 
-        # Draw the toggle circle (slider)
-        toggle_circle = toggle_canvas.create_rectangle(0, 10, 50, 50, fill="white", outline="")
+        # Create a container frame for the layout
+        layout_frame = tk.Frame(frame, bg="#f0f0f0")
+        layout_frame.pack(fill="x", padx=20, pady=10)
 
-        def toggle_switch(event):
-            """Toggle the switch between On and Off states."""
-            if self.light_on:
-                # Move circle to the left (Off state)
-                toggle_canvas.itemconfig(toggle_circle, fill="white")
-                toggle_canvas.itemconfig(toggle_bg, fill="#D3D3D3")  # Gray for Off
-                toggle_canvas.move(toggle_circle, -50, 0)  # Slide left
-                print("Light turned Off")
-            else:
-                # Move circle to the right (On state)
-                toggle_canvas.itemconfig(toggle_circle, fill="white")
-                toggle_canvas.itemconfig(toggle_bg, fill="#4CAF50")  # Green for On
-                toggle_canvas.move(toggle_circle, 50, 0)  # Slide right
-                print("Light turned On")
-            self.light_on = not self.light_on  # Toggle the state
+        # Left column (Power button and color buttons)
+        left_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        left_frame.grid(row=0, column=0, sticky="n")
 
-        # Bind a click event to the canvas
-        toggle_canvas.bind("<Button-1>", toggle_switch)
-
-        # Ensure the background is behind the circle
-        toggle_canvas.tag_lower(toggle_bg)
-
-        # Slider Frame for better alignment
-        slider_frame = tk.Frame(frame, bg="#f0f0f0")
-        slider_frame.pack(pady=10)
-
-        # Slider
-        brightness_scale = tk.Scale(
-            slider_frame, from_=0, to=100, orient=tk.HORIZONTAL, length=300,
-            font=("Helvetica", 10), bg="#f0f0f0", fg="#4CAF50",
-            highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50"
+        # Power button
+        self.power_button = tk.Button(
+            left_frame, image=self.power_icon, bg="green", borderwidth=0,
+            activebackground="gray", command=self.toggle_light
         )
-        brightness_scale.pack(padx=10)
+        self.power_button.pack(pady=10)  # Add vertical spacing for alignment
 
-        # Dynamic Value Label
-        value_label = tk.Label(
-            frame, text="0%", font=("Helvetica", 12), bg="#f0f0f0", fg="#4CAF50"
+        # Apply hover effect to the power button
+        self.apply_hover_effect(self.power_button, hover_bg="lightgreen", normal_bg="green")
+
+        # Color buttons (below the power button)
+        for color, icon in self.lights_on_icons.items():
+            color_button = tk.Button(
+                left_frame, bg=color, borderwidth=2, relief="raised", width=6, height=1,
+                command=lambda c=color: self.change_bulb_color(c)
+            )
+            color_button.pack(pady=5)
+            # Apply hover effect to each color button
+            hover_color = self.get_hover_color(color)
+            self.apply_hover_effect(color_button, hover_bg=hover_color, normal_bg=color)
+
+        # Middle column (Light bulb)
+        middle_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        middle_frame.grid(row=0, column=1, padx=10)
+
+        self.light_bulb_label = tk.Label(middle_frame, image=self.lights_off_icon, bg="#f0f0f0")
+        self.light_bulb_label.pack()
+
+        # Right column (Brightness slider)
+        right_frame = tk.Frame(layout_frame, bg="#f0f0f0")
+        right_frame.grid(row=0, column=2, sticky="n", padx=8)
+
+        tk.Label(right_frame, text="Brightness", font=("Helvetica", 12), bg="#f0f0f0", fg="#333333").pack(pady=10)
+
+        self.brightness_slider = tk.Scale(
+            right_frame, from_=100, to=0, orient=tk.VERTICAL, length=200, width=50,  # Vertical slider
+            font=("Helvetica", 10), bg="#f0f0f0", fg="#333333",
+            highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50",
+            command=self.change_brightness
         )
-        value_label.pack(pady=10)
+        self.brightness_slider.set(0)  # Set initial brightness to 0 (off)
+        self.brightness_slider.pack()
 
-        # Function to update the label dynamically
-        def update_brightness(value):
-            value_label.config(text=f" {value}%")
 
-        # Bind slider to update function
-        brightness_scale.config(command=update_brightness)
+
+    def apply_hover_effect(self, button, hover_bg, normal_bg, hover_fg=None, normal_fg=None):
+        """Apply hover effect to a button."""
+        def on_enter(e):
+            button.config(bg=hover_bg)
+            if hover_fg:
+                button.config(fg=hover_fg)
+
+        def on_leave(e):
+            button.config(bg=normal_bg)
+            if normal_fg:
+                button.config(fg=normal_fg)
+
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
+
+    def get_hover_color(self, color):
+        """Return a slightly lighter hover color for the given color."""
+        hover_colors = {
+            "red": "#ff9999",
+            "orange": "#ffcc99",
+            "yellow": "#ffff99",
+            "green": "#ccffcc",
+            "blue": "#99ccff",
+            "purple": "#d1c4e9",
+            "pink": "#ffcce6",
+            "white": "#e0e0e0"
+        }
+        return hover_colors.get(color, "#d9d9d9")  # Default to light gray if color not found
+
+    def toggle_light(self):
+        """Toggle light state and update icons."""
+        if self.light_on:
+            # Turn off the light
+            self.light_bulb_label.config(image=self.lights_off_icon)
+            self.power_button.config(bg="green")  # Green when off
+            self.brightness_slider.set(0)  # Reset brightness to 0
+            print("Lights turned off")
+        else:
+            # Turn on the light
+            self.light_bulb_label.config(image=self.lights_on_icons[self.current_color])
+            self.power_button.config(bg="red")  # Red when on
+            self.brightness_slider.set(50)  # Set brightness to 50% by default
+            print("Lights turned on with default brightness 50%")
+        
+        # Update the hover effect based on state
+        self.apply_hover_effect(self.power_button,
+                                hover_bg="darkred" if not self.light_on else "lightgreen",
+                                normal_bg="red" if not self.light_on else "green")
+        self.light_on = not self.light_on  # Toggle the state
+
+
+
+    def change_brightness(self, value):
+        """Update the brightness based on the slider's position."""
+        if self.light_on:  # Check if the lights are on
+            self.brightness = int(value)
+            print(f"Brightness set to {self.brightness}%")
+        else:
+            # Reset the slider to 0 if lights are off
+            self.brightness_slider.set(0)
+            print("Brightness adjustment is disabled because lights are off.")
+
+
+    def change_bulb_color(self, color):
+        """Change the bulb's color when a color button is clicked."""
+        if self.light_on:
+            self.current_color = color
+            self.light_bulb_label.config(image=self.lights_on_icons[color])
+            print(f"Light color changed to {color.capitalize()}!")
+        else:
+            print("Turn on the light before changing the color.")
+
+
+
+
 
     def add_tv_controls(self, window):
         """Add TV controls."""
