@@ -159,21 +159,31 @@ while cap.isOpened():
             
             # Gesture detection for peace sign
             if is_peace_sign(landmarks):
+                print("Peace Sign Detected") 
+                
+                wrist_y = landmarks[0].y * frame.shape[0] 
+                print(f"DEBUG: Calculated wrist_y = {wrist_y}, prev_wrist_y = {prev_wrist_y}")
+
                 # Scroll behavior
-                wrist_y = landmarks[0].y  # Get wrist y-coordinate
                 if prev_wrist_y is not None:
-                    diff = wrist_y - prev_wrist_y
-                    if diff > 0.01:  # Moving downward
+                    prev_wrist_y = wrist_y
+                    print(f"DEBUG: Initializing prev_wrist_y = {prev_wrist_y}")
+                else:
+                    diff = wrist_y  - prev_wrist_y
+                    print(f"DEBUG: diff = {diff}")
+                    
+                    if diff > 5:  # Moving downward
                         pyautogui.scroll(-5)  # Scroll down
                         print("Scrolling Down")
                         cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    elif diff < -0.01:  # Moving upward
+                    elif diff < -5:  # Moving upward
                         pyautogui.scroll(5)  # Scroll up
                         print("Scrolling Up")
                         cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                prev_wrist_y = wrist_y  # Update wrist position for scrolling
+                    prev_wrist_y = wrist_y   # Update wrist position for scrolling
             else:
-                prev_wrist_y = None  # Reset scrolling if peace sign is not active
+                print("DEBUG: Peace sign not detected; resetting prev_wrist_y")
+                #prev_wrist_y = None  # Reset scrolling if peace sign is not active
                                    
             if prev_x is not None and prev_y is not None:
                 # Calculate movement
