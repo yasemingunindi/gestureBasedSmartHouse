@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import math
 import pyautogui
+from multiprocessing import Queue
 
 # Initialize MediaPipe Hand module
 mp_hands = mp.solutions.hands
@@ -11,6 +12,7 @@ mp_drawing = mp.solutions.drawing_utils
 # Start video capture
 cap = cv2.VideoCapture(0)
 
+screen_width, screen_height = pyautogui.size()  # Get screen resolution
 prev_x, prev_y = None, None
 prev_wrist_y = None
 
@@ -129,92 +131,127 @@ def detect_gesture(landmarks):
         return "GOOD GESTURE"
     return "UNKNOWN GESTURE"
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        print("Failed to capture frame. Exiting.")
-        break
+def map_coordinates(x, y, frame_width, frame_height):
+    """
+    Map the camera coordinates to screen coordinates.
+    """
+    screen_x = int(x / frame_width * screen_width)
+    screen_y = int(y / frame_height * screen_height)
+    return screen_x, screen_y
 
-    # Flip the frame horizontally
-    frame = cv2.flip(frame, 1)
-    
-    # Convert the frame to RGB
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    result = hands.process(frame_rgb)
+def gesture_recognition(queue):
+    """Main loop for recognizing gestures and sending them to a queue."""
+    global prev_wrist_y
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to capture frame. Exiting.")
+            break
 
-    # Process hand landmarks
-    if result.multi_hand_landmarks:
-        for hand_landmarks in result.multi_hand_landmarks:
-            mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-            landmarks = hand_landmarks.landmark
-            gesture = detect_gesture(landmarks)
-            if(gesture != 0):
-                print(gesture)
-            # Get the tip of the index finger
-            x = int(landmarks[8].x * frame.shape[1])  # Convert normalized x to pixel
-            y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
-            
-            # Draw a circle to indicate the cursor
-            cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)  
-            
-            # Gesture detection for peace sign
-            if is_peace_sign(landmarks):
-                print("Peace Sign Detected") 
-                
-                wrist_y = landmarks[0].y * frame.shape[0] 
-                print(f"DEBUG: Calculated wrist_y = {wrist_y}, prev_wrist_y = {prev_wrist_y}")
-
-                # Scroll behavior
-                if prev_wrist_y is None:
-                    prev_wrist_y = wrist_y
-                    print(f"DEBUG: Initializing prev_wrist_y = {prev_wrist_y}")
-                else:
-                    diff = wrist_y  - prev_wrist_y
-                    print(f"DEBUG: diff = {diff}")
-                    
-                    if diff > 5:  # Moving downward
-                        pyautogui.scroll(-5)  # Scroll down
-                        print("Scrolling Down")
-                        cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    elif diff < -5:  # Moving upward
-                        pyautogui.scroll(5)  # Scroll up
-                        print("Scrolling Up")
-                        cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    prev_wrist_y = wrist_y   # Update wrist position for scrolling
-            else:
-                print("DEBUG: Peace sign not detected; resetting prev_wrist_y")
-                #prev_wrist_y = None  # Reset scrolling if peace sign is not active
-                                   
-            if prev_x is not None and prev_y is not None:
-                # Calculate movement
-                dx = x - prev_x
-                dy = y - prev_y          
-                # Determine gestures or actions
-                if abs(dx) > 20 or abs(dy) > 20:
-                    if abs(dx) > abs(dy):  # Horizontal movement
-                        if dx > 0:
-                            print("Moving Right")
-                        else:
-                            print("Moving Left")
-                    else:  # Vertical movement
-                        if dy > 0:
-                            print("Moving Down")
-                        else:
-                            print("Moving Up")
-            
-            # Update previous coordinates
-            prev_x, prev_y = x, y
-                
-    else:
-        prev_x, prev_y = None, None
+        # Flip the frame horizontally
+        frame = cv2.flip(frame, 1)
+        frame_height, frame_width, _ = frame.shape 
         
+        # Convert the frame to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        result = hands.process(frame_rgb)
 
-    # Display the frame
-    cv2.imshow('Gesture Recognition', frame)
+        # Process hand landmarks
+        if result.multi_hand_landmarks:
+            for hand_landmarks in result.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                landmarks = hand_landmarks.landmark
+                gesture = detect_gesture(landmarks)
+                if(gesture != 0):
+                    print(gesture)
+                # Get the tip of the index finger
+                x = int(landmarks[8].x * frame.shape[1])  # Convert normalized x to pixel
+                y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
+                
+                # Draw a circle to indicate the cursor
+                cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)  
+                
+                if is_index_pointing_up(landmarks):
+                    # Get the tip of the index finger
+                    x = int(landmarks[8].x * frame_width)
+                    y = int(landmarks[8].y * frame_height)
 
-    #  Exit the loop on spacebar press
-    if cv2.waitKey(1) & 0xFF == ord(' '):
-        break
+                    # Map coordinates to screen resolution
+                    screen_x, screen_y = map_coordinates(x, y, frame_width, frame_height)
 
-cap.release()
-cv2.destroyAllWindows()
+                    # Move the cursor to the mapped screen coordinates
+                    pyautogui.moveTo(screen_x, screen_y)
+
+                    # Draw a green circle to indicate active cursor control
+                    cv2.circle(frame, (x, y), 10, (0, 255, 0), -1)
+                else:
+                    # Draw a red circle to indicate inactive cursor control
+                    x = int(landmarks[8].x * frame_width)
+                    y = int(landmarks[8].y * frame_height)
+                    cv2.circle(frame, (x, y), 10, (0, 0, 255), -1)
+                
+                # Gesture detection for peace sign
+                if is_peace_sign(landmarks):
+                    print("Peace Sign Detected") 
+                    
+                    wrist_y = landmarks[0].y * frame.shape[0] 
+                    print(f"DEBUG: Calculated wrist_y = {wrist_y}, prev_wrist_y = {prev_wrist_y}")
+
+                    # Scroll behavior
+                    if prev_wrist_y is None:
+                        prev_wrist_y = wrist_y
+                        print(f"DEBUG: Initializing prev_wrist_y = {prev_wrist_y}")
+                    else:
+                        diff = wrist_y  - prev_wrist_y
+                        print(f"DEBUG: diff = {diff}")
+                        
+                        if diff > 5:  # Moving downward
+                            pyautogui.scroll(-5)  # Scroll down
+                            print("Scrolling Down")
+                            cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        elif diff < -5:  # Moving upward
+                            pyautogui.scroll(5)  # Scroll up
+                            print("Scrolling Up")
+                            cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                        prev_wrist_y = wrist_y   # Update wrist position for scrolling
+                else:
+                    print("DEBUG: Peace sign not detected; resetting prev_wrist_y")
+                    prev_wrist_y = None  # Reset scrolling if peace sign is not active
+                                    
+                if prev_x is not None and prev_y is not None:
+                    # Calculate movement
+                    dx = x - prev_x
+                    dy = y - prev_y          
+                    # Determine gestures or actions
+                    if abs(dx) > 20 or abs(dy) > 20:
+                        if abs(dx) > abs(dy):  # Horizontal movement
+                            if dx > 0:
+                                print("Moving Right")
+                            else:
+                                print("Moving Left")
+                        else:  # Vertical movement
+                            if dy > 0:
+                                print("Moving Down")
+                            else:
+                                print("Moving Up")
+                
+                # Update previous coordinates
+                prev_x, prev_y = x, y
+                    
+        else:
+            prev_x, prev_y = None, None
+            
+
+        # Display the frame
+        cv2.imshow('Gesture Recognition', frame)
+
+        #  Exit the loop on spacebar press
+        if cv2.waitKey(1) & 0xFF == ord(' '):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    queue = Queue()
+    gesture_recognition(queue)

@@ -1,8 +1,10 @@
+from multiprocessing import Process, Queue
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 from datetime import datetime
+from gestures import gesture_recognition  # Ensure gestures.py is in the same directory or adjust the import path
 
 class SmartHouseGUI(tk.Tk):
     def __init__(self):
@@ -10,14 +12,56 @@ class SmartHouseGUI(tk.Tk):
 
         # Base path to the 'icons' folder
         self.icons_folder = os.path.join(os.path.dirname(__file__), "icons")
-
+        self.queue = queue  # Properly initialize the queue
         self.title("Smart House Home Page")
         self.geometry("800x600")
         self.configure(bg="#f0f0f0")
 
+        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
+        self.gesture_label.pack(pady=10)
+        
         # Initialize the welcome screen
         self.show_main_menu()
-    
+        self.check_gestures()
+        
+    def check_gestures(self):
+        """Poll for gestures from the queue and handle them."""
+        try:
+            while not self.queue.empty():
+                gesture = self.queue.get()
+                self.handle_gesture(gesture)
+        except Exception as e:
+            print(f"Error handling gestures: {e}")
+        self.after(100, self.check_gestures)  # Check for gestures every 100ms
+
+    def handle_gesture(self, gesture):
+        """Handle specific gestures and map them to UI actions."""
+        self.gesture_label.config(text=f"Gesture: {gesture}")
+
+        if gesture == "INDEX POINTING UP":
+            print("Controller Mode Activated")
+        elif gesture == "PEACE SIGN":
+            print("Scroll Triggered")  # Add specific UI scroll logic here if needed
+        elif gesture == "THREE":
+            self.open_room_list()
+        elif gesture == "ROCK'N ROLL!!!":
+            self.show_main_menu()
+        elif gesture == "THUMBS UP":
+            self.adjust_volume(up=True)
+        elif gesture == "THUMBS DOWN":
+            self.adjust_volume(up=False)
+        else:
+            print(f"Unhandled gesture: {gesture}")
+
+    def adjust_volume(self, up):
+        """Adjust volume up or down based on the gesture."""
+        volume_control = self.music_volume_scale if hasattr(self, 'music_volume_scale') else None
+        if volume_control:
+            current_volume = volume_control.get()
+            new_volume = min(current_volume + 5, 100) if up else max(current_volume - 5, 0)
+            volume_control.set(new_volume)
+            print(f"Volume {'Increased' if up else 'Decreased'} to {new_volume}")
+
     def apply_hover_effect(self, button, hover_bg="#d9d9d9", hover_fg="#ffffff", normal_bg="#ffffff", normal_fg="#000000"):
         """Apply hover effect to a button, ensuring it returns to its default colors."""
         def on_enter(e):
@@ -820,5 +864,9 @@ class SmartHouseGUI(tk.Tk):
 
 
 if __name__ == "__main__":
+    queue = Queue()
+    p = Process(target=gesture_recognition, args=(queue,))
+    p.start()
     app = SmartHouseGUI()
     app.mainloop()
+    p.join()
