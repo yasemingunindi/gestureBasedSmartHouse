@@ -202,22 +202,18 @@ def gesture_recognition(queue):
                     # Scroll behavior
                     if prev_wrist_y is None:
                         prev_wrist_y = wrist_y
-                        print(f"DEBUG: Initializing prev_wrist_y = {prev_wrist_y}")
                     else:
                         diff = wrist_y  - prev_wrist_y
-                        print(f"DEBUG: diff = {diff}")
-                        
                         if diff > 5:  # Moving downward
-                            pyautogui.scroll(-5)  # Scroll down
+                            queue.put("SCROLL DOWN")
                             print("Scrolling Down")
                             cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                         elif diff < -5:  # Moving upward
-                            pyautogui.scroll(5)  # Scroll up
+                            queue.put("SCROLL UP")  # Scroll up
                             print("Scrolling Up")
                             cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
                         prev_wrist_y = wrist_y   # Update wrist position for scrolling
                 else:
-                    print("DEBUG: Peace sign not detected; resetting prev_wrist_y")
                     prev_wrist_y = None  # Reset scrolling if peace sign is not active
                                     
                 if prev_x is not None and prev_y is not None:

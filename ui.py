@@ -40,7 +40,7 @@ class SmartHouseGUI(tk.Tk):
         current_time = time.time()  # Current time in seconds
 
         # Debounce logic: Process the gesture only if it's new or after cooldown
-        if gesture == self.last_gesture and (current_time - self.last_gesture_time) < 1:
+        if gesture == self.last_gesture and (current_time - self.last_gesture_time) < 5:
             print(f"Ignored duplicate gesture: {gesture}")
             return
 
@@ -51,7 +51,8 @@ class SmartHouseGUI(tk.Tk):
         if gesture == "INDEX POINTING UP":
             print("Controller Mode Activated")
         elif gesture == "PEACE SIGN":
-            print("Scroll Triggered")  # Add specific UI scroll logic here if needed
+            print("Scroll Triggered")
+            self.scroll_page()# Add specific UI scroll logic here if needed
         elif gesture == "THREE":
             print("Opening Room List...")
             self.open_room_list()
@@ -61,6 +62,12 @@ class SmartHouseGUI(tk.Tk):
             print("Performing Click...")
             pyautogui.click()  # Simulates a click
             print("Click Performed")
+        elif gesture == "SCROLL UP":
+            self.scroll_page(direction="up")
+            print("Scrolled Up")
+        elif gesture == "SCROLL DOWN":
+            self.scroll_page(direction="down")
+            print("Scrolled Down")
         elif gesture == "THUMBS UP":
             self.adjust_volume(up=True)
         elif gesture == "THUMBS DOWN":
@@ -68,8 +75,7 @@ class SmartHouseGUI(tk.Tk):
         else:
             print(f"Unhandled gesture: {gesture}")
     
-
-
+ 
     def adjust_volume(self, up):
         """Adjust volume up or down based on the gesture."""
         volume_control = self.music_volume_scale if hasattr(self, 'music_volume_scale') else None
@@ -89,6 +95,12 @@ class SmartHouseGUI(tk.Tk):
 
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
+
+    def scroll_page(self, direction="up"):
+        """Scroll the page up or down."""
+        scroll_amount = 100 if direction == "up" else -100
+        pyautogui.scroll(scroll_amount)
+        print(f"Scrolled {direction} by {scroll_amount}")
 
 
     def show_main_menu(self):
