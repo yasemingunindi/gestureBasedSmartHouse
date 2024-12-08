@@ -163,7 +163,9 @@ def gesture_recognition(queue):
                 landmarks = hand_landmarks.landmark
                 gesture = detect_gesture(landmarks)
                 if(gesture != 0):
-                    print(gesture)
+                    queue.put(gesture)
+                    print(f"Gesture Detected: {gesture}")
+                    
                 # Get the tip of the index finger
                 x = int(landmarks[8].x * frame.shape[1])  # Convert normalized x to pixel
                 y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel

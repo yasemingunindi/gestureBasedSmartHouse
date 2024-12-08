@@ -9,16 +9,12 @@ from gestures import gesture_recognition  # Ensure gestures.py is in the same di
 class SmartHouseGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-
+        self.queue = queue
         # Base path to the 'icons' folder
         self.icons_folder = os.path.join(os.path.dirname(__file__), "icons")
-        self.queue = queue  # Properly initialize the queue
         self.title("Smart House Home Page")
         self.geometry("800x600")
         self.configure(bg="#f0f0f0")
-
-        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
-        self.gesture_label.pack(pady=10)
         
         # Initialize the welcome screen
         self.show_main_menu()
@@ -29,6 +25,7 @@ class SmartHouseGUI(tk.Tk):
         try:
             while not self.queue.empty():
                 gesture = self.queue.get()
+                 # Ensure gesture_label exists before updating it
                 self.handle_gesture(gesture)
         except Exception as e:
             print(f"Error handling gestures: {e}")
@@ -36,13 +33,13 @@ class SmartHouseGUI(tk.Tk):
 
     def handle_gesture(self, gesture):
         """Handle specific gestures and map them to UI actions."""
-        self.gesture_label.config(text=f"Gesture: {gesture}")
-
+               
         if gesture == "INDEX POINTING UP":
             print("Controller Mode Activated")
         elif gesture == "PEACE SIGN":
             print("Scroll Triggered")  # Add specific UI scroll logic here if needed
         elif gesture == "THREE":
+            print("Opening Room List...")
             self.open_room_list()
         elif gesture == "ROCK'N ROLL!!!":
             self.show_main_menu()
@@ -52,6 +49,8 @@ class SmartHouseGUI(tk.Tk):
             self.adjust_volume(up=False)
         else:
             print(f"Unhandled gesture: {gesture}")
+    
+
 
     def adjust_volume(self, up):
         """Adjust volume up or down based on the gesture."""
@@ -80,6 +79,9 @@ class SmartHouseGUI(tk.Tk):
         for widget in self.winfo_children():
             widget.destroy()
 
+        # Create a gesture label
+        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
+        self.gesture_label.pack(pady=10)
         # Create a canvas to draw the white rectangle and add the text and image
         canvas = tk.Canvas(self, bg="#f0f0f0", width=700, height=200, highlightthickness=0)
         canvas.pack(pady=20)
@@ -172,7 +174,9 @@ class SmartHouseGUI(tk.Tk):
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
-
+        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
+        self.gesture_label.pack(pady=10)
+        
         # Create a header frame for the Go Back button and title
         header_frame = tk.Frame(self, bg="#5c3a92")  # Purple background
         header_frame.pack(fill=tk.X, pady=10)
