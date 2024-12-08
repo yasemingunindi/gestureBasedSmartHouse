@@ -1,8 +1,10 @@
 from multiprocessing import Process, Queue
+import time  # Import time for debounce logic
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import os
+import pyautogui
 from datetime import datetime
 from gestures import gesture_recognition  # Ensure gestures.py is in the same directory or adjust the import path
 
@@ -15,6 +17,9 @@ class SmartHouseGUI(tk.Tk):
         self.title("Smart House Home Page")
         self.geometry("800x600")
         self.configure(bg="#f0f0f0")
+        
+        self.last_gesture = None  # Store the last gesture processed
+        self.last_gesture_time = 0  # Timestamp of the last gesture
         
         # Initialize the welcome screen
         self.show_main_menu()
@@ -32,6 +37,15 @@ class SmartHouseGUI(tk.Tk):
         self.after(100, self.check_gestures)  # Check for gestures every 100ms
 
     def handle_gesture(self, gesture):
+        current_time = time.time()  # Current time in seconds
+
+        # Debounce logic: Process the gesture only if it's new or after cooldown
+        if gesture == self.last_gesture and (current_time - self.last_gesture_time) < 1:
+            print(f"Ignored duplicate gesture: {gesture}")
+            return
+
+        self.last_gesture = gesture
+        self.last_gesture_time = current_time
         """Handle specific gestures and map them to UI actions."""
                
         if gesture == "INDEX POINTING UP":
@@ -43,6 +57,10 @@ class SmartHouseGUI(tk.Tk):
             self.open_room_list()
         elif gesture == "ROCK'N ROLL!!!":
             self.show_main_menu()
+        elif gesture == "FOUR":
+            print("Performing Click...")
+            pyautogui.click()  # Simulates a click
+            print("Click Performed")
         elif gesture == "THUMBS UP":
             self.adjust_volume(up=True)
         elif gesture == "THUMBS DOWN":
@@ -78,10 +96,7 @@ class SmartHouseGUI(tk.Tk):
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
-
-        # Create a gesture label
-        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
-        self.gesture_label.pack(pady=10)
+            
         # Create a canvas to draw the white rectangle and add the text and image
         canvas = tk.Canvas(self, bg="#f0f0f0", width=700, height=200, highlightthickness=0)
         canvas.pack(pady=20)
@@ -174,8 +189,6 @@ class SmartHouseGUI(tk.Tk):
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
-        self.gesture_label = tk.Label(self, text="Gesture: None", font=("Helvetica", 20), bg="#f0f0f0", fg="#000000")
-        self.gesture_label.pack(pady=10)
         
         # Create a header frame for the Go Back button and title
         header_frame = tk.Frame(self, bg="#5c3a92")  # Purple background

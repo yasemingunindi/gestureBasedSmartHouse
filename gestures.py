@@ -122,7 +122,7 @@ def detect_gesture(landmarks):
     elif is_rockn_roll(landmarks):
         return "ROCK'N ROLL!!!"
     elif is_open(landmarks):
-        return(0)
+        return "FOUR"
     elif is_thumbs_up(landmarks):
         return "THUMBS UP"
     elif is_thumbs_down(landmarks):
