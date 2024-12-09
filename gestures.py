@@ -140,6 +140,7 @@ def map_coordinates(x, y, frame_width, frame_height):
     return screen_x, screen_y
 
 def gesture_recognition(queue):
+    prev_x, prev_y = None, None
     """Main loop for recognizing gestures and sending them to a queue."""
     global prev_wrist_y
     while cap.isOpened():

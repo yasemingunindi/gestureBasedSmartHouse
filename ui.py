@@ -253,7 +253,7 @@ class SmartHouseGUI(tk.Tk):
         rooms = [
             ("Bedroom", "bedroom_icon.png"),
             ("Kids Room", "kidsroom_icon.png"),
-            ("Living Room", "livingroom_icon.png"),
+            ("Living Room", "livingroom_icon.png"), 
             ("Office", "office_icon.png"),
             ("Kitchen", "kitchen_icon.png"),
             ("Bathroom", "bathroom_icon.png"),
