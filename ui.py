@@ -266,7 +266,7 @@ class SmartHouseGUI(tk.Tk):
 
         room_canvas = tk.Canvas(room_frame, bg="#5c3a92")  # Purple background
         room_scroll_x = tk.Scrollbar(room_frame, orient="horizontal", command=room_canvas.xview)
-        room_scroll_x.config(width=30)
+        room_scroll_x.config(width=50)
         room_canvas.configure(xscrollcommand=room_scroll_x.set)
 
         room_list_frame = tk.Frame(room_canvas, bg="#5c3a92")  # Purple background
@@ -362,6 +362,7 @@ class SmartHouseGUI(tk.Tk):
         )
 
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        scrollbar.config(width=50)  # Increase width for better visibility
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.pack(side="left", fill="both", expand=True)
