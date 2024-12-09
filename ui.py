@@ -7,6 +7,43 @@ import os
 import pyautogui
 from datetime import datetime
 from gestures import gesture_recognition  # Ensure gestures.py is in the same directory or adjust the import path
+class FeedbackPopUp:
+    def __init__(self, parent, message, duration=2000):
+        """
+        Create a self-disappearing pop-up.
+
+        Args:
+            parent: Parent tkinter widget.
+            message (str): Message to display in the pop-up.
+            duration (int): Duration in milliseconds before the pop-up disappears.
+        """
+        self.popup = tk.Toplevel(parent)
+        self.popup.geometry("300x100")  # Adjust size as needed
+        self.popup.title("Feedback")
+        self.popup.configure(bg="lightyellow")
+        self.popup.resizable(False, False)
+        # Remove window decorations
+        self.popup.overrideredirect(True)
+        # Set transparency to 90%
+        self.popup.attributes("-alpha", 0.9)
+        # Center the pop-up on the parent window
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_width = parent.winfo_width()
+        parent_height = parent.winfo_height()
+        popup_width = 300
+        popup_height = 100
+        x_offset = parent_x + (parent_width - popup_width) // 2
+        y_offset = parent_y + (parent_height - popup_height) // 2
+        self.popup.geometry(f"{popup_width}x{popup_height}+{x_offset}+{y_offset}")
+
+        # Add a label to display the feedback message
+        tk.Label(
+            self.popup, text=message, bg="lightyellow", font=("Arial", 12), wraplength=280
+        ).pack(expand=True, fill=tk.BOTH, pady=20)
+
+        # Schedule the pop-up to close after the specified duration
+        self.popup.after(duration, self.popup.destroy)
 
 class SmartHouseGUI(tk.Tk):
     def __init__(self):
@@ -351,36 +388,6 @@ class SmartHouseGUI(tk.Tk):
             self.add_appliance_controls(scrollable_frame , "Garage Door", ["Open", "Close"])
         # Add other room-specific controls similarly
 
-    def open_living_room(self, window):
-        """Add Living Room controls."""
-        self.add_lights_controls(window)
-        self.add_tv_controls(window)
-        self.add_ac_controls(window)
-        self.add_music_controls(window)
-        self.add_thermostat_controls(window)
-        self.add_vacuum_controls(window) 
-        
-    def open_kitchen(self, window):
-        """Add Kitchen controls."""
-        self.add_lights_controls(window)
-        self.add_appliance_controls(window, "Air Fryer", ["Temp Up", "Temp Down", "Time Up", "Time Down", "Start/Stop"])
-        self.add_appliance_controls(window, "Coffee Machine", ["Program Selection", "On/Off"])
-
-    def open_bedroom(self, window):
-        """Add Bedroom controls."""
-        self.add_thermostat_controls(window)
-        self.add_lights_controls(window)
-        self.add_appliance_controls(window, "Curtains", ["Open", "Close"])
-        self.add_ac_controls(window)        
-
-    def open_bathroom(self, window):
-        """Add Bathroom controls."""
-        self.add_lights_controls(window)
-
-    def open_kids_room(self, window):
-        self.add_lights_controls(window)
-        self.add_ac_controls(window)  
-    
     def add_lights_controls(self, window):
         """Add light controls with power button, light bulb icon, color buttons, and brightness slider."""
         frame = tk.LabelFrame(window, text="Lights", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
@@ -528,10 +535,11 @@ class SmartHouseGUI(tk.Tk):
         if self.light_on:
             self.current_color = color
             self.light_bulb_label.config(image=self.lights_on_icons[color])
-            print(f"Light color changed to {color.capitalize()}!")
+            # Show feedback pop-up
+            FeedbackPopUp(self, f"Light color changed to {color.capitalize()}!", duration=2000)
         else:
             print("Turn on the light before changing the color.")
-
+            FeedbackPopUp(self, "Turn on the light before changing the color.", duration=2000)
 
     def add_tv_controls(self, window):
         """Add TV controls."""
