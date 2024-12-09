@@ -253,7 +253,7 @@ class SmartHouseGUI(tk.Tk):
         rooms = [
             ("Bedroom", "bedroom_icon.png"),
             ("Kids Room", "kidsroom_icon.png"),
-            ("Living Room", "livingroom_icon.png"), 
+            ("Living Room", "livingroom_icon.png"),
             ("Office", "office_icon.png"),
             ("Kitchen", "kitchen_icon.png"),
             ("Bathroom", "bathroom_icon.png"),
@@ -286,54 +286,53 @@ class SmartHouseGUI(tk.Tk):
 
 
     def on_room_click(self, room_name):
-        """Handle room button clicks with scrollable content."""
-        new_window = tk.Toplevel(self)
-        new_window.title(f"{room_name} Controls")
-        new_window.geometry("600x600")
-        new_window.configure(bg="#f0f0f0")
+        """Handle room button clicks and display room controls in the main window."""
+        # Clear the existing window content
+        for widget in self.winfo_children():
+            widget.destroy()
 
-        # Header for the room
-        header_frame = tk.Frame(new_window, bg="#f0f0f0")
+        # Header for navigation
+        header_frame = tk.Frame(self, bg="#5c3a92")
         header_frame.pack(fill=tk.X, pady=10)
 
+        # Back button
         back_button = tk.Button(
             header_frame, text="⬅", font=("Helvetica", 18, "bold"),
-            bg="#f0f0f0", fg="#729efd", borderwidth=0,
-            command=lambda: [new_window.destroy(), self.open_room_list()]
+            bg="#5c3a92", fg="#ffffff", borderwidth=0,
+            command=self.open_room_list
         )
         back_button.pack(side=tk.LEFT, padx=10)
-        self.apply_hover_effect(back_button, hover_bg="#d9d9d9", normal_bg="#f0f0f0", hover_fg="#0cead9", normal_fg="#729efd")
+        self.apply_hover_effect(back_button, hover_bg="#8a64d6", normal_bg="#5c3a92", normal_fg="#ffffff")
 
+        # Room title
         title_label = tk.Label(
             header_frame, text=f"{room_name} Controls",
-            font=("Helvetica", 24), bg="#f0f0f0", fg="#333333"
+            font=("Helvetica", 30, "bold"), bg="#5c3a92", fg="#ffffff"
         )
         title_label.pack(side=tk.LEFT, padx=10)
 
-        # Scrollable frame
-        scrollable_frame = tk.Frame(new_window, bg="#f0f0f0")
-        scrollable_frame.pack(fill=tk.BOTH, expand=True)
+        # Scrollable content area for room controls
+        content_frame = tk.Frame(self, bg="#f0f0f0")
+        content_frame.pack(fill=tk.BOTH, expand=True)
 
-        canvas = tk.Canvas(scrollable_frame, bg="#f0f0f0")
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        canvas = tk.Canvas(content_frame, bg="#f0f0f0")
+        scrollbar = tk.Scrollbar(content_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg="#f0f0f0")
 
-        scrollbar = tk.Scrollbar(scrollable_frame, orient="vertical", command=canvas.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        content_frame = tk.Frame(canvas, bg="#f0f0f0")
-        canvas.create_window((0, 0), window=content_frame, anchor="nw")
-
-        # Adjust scroll region dynamically
-        content_frame.bind(
+        scrollable_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        # Add common controls to every room
-        self.add_thermostat_controls(content_frame)
-        self.add_lights_controls(content_frame)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Add common controls for the room
+        self.add_thermostat_controls(scrollable_frame)
+        self.add_lights_controls(scrollable_frame)
 
         # Add specific controls for each room
         if room_name == "Living Room":
