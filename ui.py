@@ -61,6 +61,40 @@ class SmartHouseGUI(tk.Tk):
         # Initialize the welcome screen
         self.show_main_menu()
         self.check_gestures()
+
+        # Lock mouse within the window
+        self.lock_mouse()
+
+        # Ensure unlocking when the window is closed
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def lock_mouse(self):
+        """Locks the mouse within the window bounds."""
+        self.update_idletasks()  # Ensure the window bounds are up-to-date
+        x1 = self.winfo_rootx()
+        y1 = self.winfo_rooty()
+        x2 = x1 + self.winfo_width()
+        y2 = y1 + self.winfo_height()
+
+        # Restrict the mouse within the bounds
+        current_mouse_x, current_mouse_y = pyautogui.position()
+        if current_mouse_x < x1:
+            current_mouse_x = x1
+        elif current_mouse_x > x2:
+            current_mouse_x = x2
+        if current_mouse_y < y1:
+            current_mouse_y = y1
+        elif current_mouse_y > y2:
+            current_mouse_y = y2
+
+        pyautogui.moveTo(current_mouse_x, current_mouse_y)
+        self.mouse_lock_id = self.after(50, self.lock_mouse)
+
+    def on_close(self):
+        """Stops mouse lock and closes the application."""
+        if hasattr(self, 'mouse_lock_id'):
+            self.after_cancel(self.mouse_lock_id)
+        self.destroy()
         
     def check_gestures(self):
         """Poll for gestures from the queue and handle them."""
