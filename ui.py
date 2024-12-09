@@ -336,19 +336,19 @@ class SmartHouseGUI(tk.Tk):
 
         # Add specific controls for each room
         if room_name == "Living Room":
-            self.add_tv_controls(content_frame)
-            self.add_music_controls(content_frame)
-            self.add_ac_controls(content_frame)
+            self.add_tv_controls(scrollable_frame)
+            self.add_music_controls(scrollable_frame)
+            self.add_ac_controls(scrollable_frame)
         elif room_name == "Kitchen":
-            self.add_appliance_controls(content_frame, "Air Fryer", ["Temp Up", "Temp Down", "Time Up", "Time Down", "Start/Stop"])
-            self.add_appliance_controls(content_frame, "Coffee Machine", ["Program Selection", "On/Off"])
+            self.add_appliance_controls(scrollable_frame, "Air Fryer", ["Temp Up", "Temp Down", "Time Up", "Time Down", "Start/Stop"])
+            self.add_appliance_controls(scrollable_frame, "Coffee Machine", ["Program Selection", "On/Off"])
         elif room_name == "Bedroom":
-            self.add_appliance_controls(content_frame, "Curtains", ["Open", "Close"])
-            self.add_ac_controls(content_frame)
+            self.add_appliance_controls(scrollable_frame, "Curtains", ["Open", "Close"])
+            self.add_ac_controls(scrollable_frame)
         elif room_name == "Bathroom":
-            self.add_appliance_controls(content_frame, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
+            self.add_appliance_controls(scrollable_frame, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
         elif room_name == "Garage":
-            self.add_appliance_controls(content_frame, "Garage Door", ["Open", "Close"])
+            self.add_appliance_controls(scrollable_frame , "Garage Door", ["Open", "Close"])
         # Add other room-specific controls similarly
 
     def open_living_room(self, window):
@@ -376,7 +376,6 @@ class SmartHouseGUI(tk.Tk):
     def open_bathroom(self, window):
         """Add Bathroom controls."""
         self.add_lights_controls(window)
-        self.add_appliance_controls(window, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
 
     def open_kids_room(self, window):
         self.add_lights_controls(window)
