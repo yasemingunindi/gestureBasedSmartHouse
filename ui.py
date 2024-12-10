@@ -433,12 +433,12 @@ class SmartHouseGUI(tk.Tk):
             self.add_tv_controls(scrollable_frame)
             self.add_music_controls(scrollable_frame)
         elif room_name == "Kitchen":
-            self.add_appliance_controls(scrollable_frame, "Air Fryer", ["Start"])
-            self.add_appliance_controls(scrollable_frame, "Coffee Machine", ["Start"])
+            self.add_appliance_controls(scrollable_frame, "Air Fryer", ["On/Off"])
+            self.add_appliance_controls(scrollable_frame, "Coffee Machine", ["On/Off"])
         elif room_name == "Bedroom":
-            self.add_appliance_controls(scrollable_frame, "Curtains", ["Start"])
+            self.add_appliance_controls(scrollable_frame, "Curtains", ["On/Off"])
         elif room_name == "Garage":
-            self.add_appliance_controls(scrollable_frame , "Garage Door", ["Start"])
+            self.add_appliance_controls(scrollable_frame , "Garage Door", ["On/Off"])
         # Add other room-specific controls similarly
 
     def add_lights_controls(self, window):
@@ -819,25 +819,36 @@ class SmartHouseGUI(tk.Tk):
         frame = tk.LabelFrame(window, text=appliance_name, font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
 
-        # State tracking for buttons
-        self.appliance_states = {}  # Dictionary to track the state of appliances
+        # State tracking for the button
+        if not hasattr(self, 'appliance_states'):
+            self.appliance_states = {}  # Initialize state dictionary if it doesn't exist
 
-        def toggle_button_state(btn, name):
-            """Toggle the state of the button and change its appearance."""
-            current_state = self.appliance_states.get(name, "Off")
-            new_state = "On" if current_state == "Off" else "Off"
-            self.appliance_states[name] = new_state
-            btn.config(text=new_state, bg="green" if new_state == "On" else "red")
+        # Set initial state to False (Off) for the appliance
+        self.appliance_states[appliance_name] = False
 
-        for btn_text in button_texts:
-            tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
+        # Create the button
+        button = tk.Button(
+            frame, text="Off", width=15, bg="red", fg="white",
+            command=lambda: self.toggle_button_state(button, appliance_name)
+        )
+        button.pack(side=tk.LEFT, padx=5, pady=5)
 
-            button = tk.Button(frame, text="Off", width=15, bg="red", fg="white",
-                            command=lambda b=btn_text: toggle_button_state(button, appliance_name))
-            button.pack(side=tk.LEFT, padx=5, pady=5)
+        # Apply hover effect
+        self.apply_hover_effect(button, hover_bg="lightgreen", normal_bg="red", hover_fg="black", normal_fg="white")
 
-            # Apply hover effect
-            self.apply_hover_effect(button, hover_bg="lightgreen", normal_bg="red", hover_fg="black", normal_fg="white")
+    def toggle_button_state(self, btn, name):
+        """Toggle the state of the button and change its appearance."""
+        # Toggle the appliance state
+        current_state = self.appliance_states.get(name, False)
+        self.appliance_states[name] = not current_state
+
+        if self.appliance_states[name]:  # If appliance is On
+            btn.config(text="On", bg="green", fg="white")
+            self.apply_hover_effect(btn, hover_bg="lightblue", normal_bg="green", hover_fg="black", normal_fg="white")
+        else:  # If appliance is Off
+            btn.config(text="Off", bg="red", fg="white")
+            self.apply_hover_effect(btn, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+
 
     
     def on_hover(self, event, button, hover_bg):
