@@ -54,11 +54,9 @@ class SmartHouseGUI(tk.Tk):
         self.title("Smart House Home Page")
         self.geometry("800x600")
         self.configure(bg="#f0f0f0")
-        
         self.page_stack = []
         self.last_gesture = None  # Store the last gesture processed
         self.last_gesture_time = 0  # Timestamp of the last gesture
-        
         self.hovered_component = None  # Track the currently hovered component
         # Initialize the welcome screen
         self.show_main_menu()
@@ -144,7 +142,6 @@ class SmartHouseGUI(tk.Tk):
             print("Opening Room List...")
             self.open_room_list()
         elif gesture == "ROCK'N ROLL!!!":
-            self.show_main_menu()
             print("Navigating to the previous page...")
             self.go_to_previous_page()
         elif gesture == "FOUR":
@@ -157,10 +154,6 @@ class SmartHouseGUI(tk.Tk):
         elif gesture == "SCROLL DOWN":
             self.scroll_page(direction="down")
             print("Scrolled Down")
-        elif gesture == "THUMBS UP":
-            self.adjust_volume(up=True)
-        elif gesture == "THUMBS DOWN":
-            self.adjust_volume(up=False)
         else:
             print(f"Unhandled gesture: {gesture}")
     
@@ -386,7 +379,6 @@ class SmartHouseGUI(tk.Tk):
             btn.image = room_icon
             btn.grid(row=row, column=col, padx=20, pady=10)
             self.apply_hover_effect(btn, hover_bg="#0cead9", normal_bg="#ffffff")
-
 
     def go_to_previous_page(self):
         if self.page_stack:
