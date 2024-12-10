@@ -443,17 +443,13 @@ class SmartHouseGUI(tk.Tk):
         if room_name == "Living Room":
             self.add_tv_controls(scrollable_frame)
             self.add_music_controls(scrollable_frame)
-            self.add_ac_controls(scrollable_frame)
         elif room_name == "Kitchen":
-            self.add_appliance_controls(scrollable_frame, "Air Fryer", ["Temp Up", "Temp Down", "Time Up", "Time Down", "Start/Stop"])
-            self.add_appliance_controls(scrollable_frame, "Coffee Machine", ["Program Selection", "On/Off"])
+            self.add_appliance_controls(scrollable_frame, "Air Fryer", ["Start"])
+            self.add_appliance_controls(scrollable_frame, "Coffee Machine", ["Start"])
         elif room_name == "Bedroom":
-            self.add_appliance_controls(scrollable_frame, "Curtains", ["Open", "Close"])
-            self.add_ac_controls(scrollable_frame)
-        elif room_name == "Bathroom":
-            self.add_appliance_controls(scrollable_frame, "Ventilation", ["On", "Off", "Fan Speed Up", "Fan Speed Down"])
+            self.add_appliance_controls(scrollable_frame, "Curtains", ["Start"])
         elif room_name == "Garage":
-            self.add_appliance_controls(scrollable_frame , "Garage Door", ["Open", "Close"])
+            self.add_appliance_controls(scrollable_frame , "Garage Door", ["Start"])
         # Add other room-specific controls similarly
 
     def add_lights_controls(self, window):
@@ -666,14 +662,20 @@ class SmartHouseGUI(tk.Tk):
         volume_label = tk.Label(right_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
         volume_label.pack(pady=5)
 
-        self.volume_scale = ttk.Scale(right_panel, from_=100, to=0, orient="vertical", command=self.change_volume)
-        self.volume_scale.set(50)  # Default volume level
-        self.volume_scale.pack()
-        
-         # Bind hover events
-        self.tv_volume_scale.bind("<Enter>", lambda e: self.set_hovered_component(self.tv_volume_scale))
-        self.tv_volume_scale.bind("<Leave>", lambda e: self.clear_hovered_component())
+        # Add the TV Volume Slider
+        self.tv_volume_slider = tk.Scale(
+            right_panel, from_=100, to=0, orient=tk.VERTICAL, length=250, width=75,  # Vertical slider
+            font=("Helvetica", 10), bg="#f0f0f0", fg="#333333", 
+            highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50",
+            command=self.change_volume  # Use an appropriate method
+        )
+        self.tv_volume_slider.set(50)  # Default volume
+        self.tv_volume_slider.pack()
 
+        # Bind hover events for volume slider
+        self.tv_volume_slider.bind("<Enter>", lambda e: self.set_hovered_component(self.tv_volume_slider))
+        self.tv_volume_slider.bind("<Leave>", lambda e: self.clear_hovered_component())
+        
     def toggle_tv(self):
         """Toggle the TV on and off."""
         self.tv_state = not self.tv_state
@@ -692,14 +694,6 @@ class SmartHouseGUI(tk.Tk):
     def change_volume(self, val):
         print(f"Volume: {int(float(val))}")
 
-
-    def add_ac_controls(self, window):
-        """Add Air Conditioner controls."""
-        frame = tk.LabelFrame(window, text="Air Conditioner", font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
-        frame.pack(pady=10, fill="x")
-        buttons = ["On", "Off", "Mode", "Temp Up", "Temp Down", "Fan Speed Up", "Fan Speed Down"]
-        for btn_text in buttons:
-            tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
 
     def add_music_controls(self, window):
         """Add Music System controls."""
@@ -742,14 +736,18 @@ class SmartHouseGUI(tk.Tk):
         volume_label = tk.Label(middle_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
         volume_label.pack(pady=5)
 
-        self.music_volume_scale = ttk.Scale(
-            middle_panel, from_=0, to=100, orient="vertical", command=self.change_music_volume
+        self.music_volume_slider = tk.Scale(
+            middle_panel, from_=100, to=0, orient=tk.VERTICAL, length=250, width=75,  # Vertical slider
+            font=("Helvetica", 10), bg="#f0f0f0", fg="#333333", 
+            highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50",
+            command=self.change_music_volume  # Calls method to adjust music volume
         )
-        self.music_volume_scale.set(50)  # Default volume level
-        self.music_volume_scale.pack()
-        
-        self.music_volume_scale.bind("<Enter>", lambda e: self.set_hovered_component(self.music_volume_scale))
-        self.music_volume_scale.bind("<Leave>", lambda e: self.clear_hovered_component())
+        self.music_volume_slider.set(50)  # Default volume level
+        self.music_volume_slider.pack()
+
+        # Add hover effects to the slider
+        self.music_volume_slider.bind("<Enter>", lambda e: self.set_hovered_component(self.music_volume_slider))
+        self.music_volume_slider.bind("<Leave>", lambda e: self.clear_hovered_component())
 
 
         # Right panel for song controls
@@ -823,11 +821,28 @@ class SmartHouseGUI(tk.Tk):
             tk.Button(frame, text=btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
 
     def add_appliance_controls(self, window, appliance_name, button_texts):
-        """Add controls for a specific appliance."""
+        """Add controls for a specific appliance with 'On' and 'Off' buttons."""
         frame = tk.LabelFrame(window, text=appliance_name, font=("Helvetica", 16), bg="#f0f0f0", fg="#000000")
         frame.pack(pady=10, fill="x")
+
+        # State tracking for buttons
+        self.appliance_states = {}  # Dictionary to track the state of appliances
+
+        def toggle_button_state(btn, name):
+            """Toggle the state of the button and change its appearance."""
+            current_state = self.appliance_states.get(name, "Off")
+            new_state = "On" if current_state == "Off" else "Off"
+            self.appliance_states[name] = new_state
+            btn.config(text=new_state, bg="green" if new_state == "On" else "red")
+
         for btn_text in button_texts:
-            tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
+            button = tk.Button(frame, text="Off", width=15, bg="red", fg="white",
+                            command=lambda b=btn_text: toggle_button_state(button, appliance_name))
+            button.pack(side=tk.LEFT, padx=5, pady=5)
+
+            # Apply hover effect
+            self.apply_hover_effect(button, hover_bg="lightgreen", normal_bg="red", hover_fg="black", normal_fg="white")
+
     
     def on_hover(self, event, button, hover_bg):
         """Change button background color on hover."""
