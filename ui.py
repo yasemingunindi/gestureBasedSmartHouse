@@ -557,13 +557,16 @@ class SmartHouseGUI(tk.Tk):
             self.power_button.config(bg="green")  # Green when off
             self.brightness_slider.set(0)  # Reset brightness to 0
             print("Lights turned off")
+            FeedbackPopUp(self, "Lights turned off", duration=2000)
+
         else:
             # Turn on the light
             self.light_bulb_label.config(image=self.lights_on_icons[self.current_color])
             self.power_button.config(bg="red")  # Red when on
             self.brightness_slider.set(50)  # Set brightness to 50% by default
             print("Lights turned on with default brightness 50%")
-        
+            FeedbackPopUp(self, "Lights turned on", duration=2000)
+
         # Update the hover effect based on state
         self.apply_hover_effect(self.power_button,
                                 hover_bg="darkred" if not self.light_on else "lightgreen",
@@ -574,11 +577,12 @@ class SmartHouseGUI(tk.Tk):
         """Update the brightness based on the slider's position."""
         if self.light_on:  # Check if the lights are on
             self.brightness = int(value)
-            print(f"Brightness set to {self.brightness}%")
+            
         else:
             # Reset the slider to 0 if lights are off
             self.brightness_slider.set(0)
             print("Brightness adjustment is disabled because lights are off.")
+            FeedbackPopUp(self, "Turn on the light before adjusting the brightness!", duration=2000)
 
     def change_bulb_color(self, color):
         """Change the bulb's color when a color button is clicked."""
@@ -588,7 +592,6 @@ class SmartHouseGUI(tk.Tk):
             # Show feedback pop-up
             FeedbackPopUp(self, f"Light color changed to {color.capitalize()}!", duration=2000)
         else:
-            print("Turn on the light before changing the color.")
             FeedbackPopUp(self, "Turn on the light before changing the color.", duration=2000)
 
     def add_tv_controls(self, window):
@@ -673,12 +676,16 @@ class SmartHouseGUI(tk.Tk):
 
     def channel_up(self):
         print("Channel Up")
+        FeedbackPopUp(self, "Channel Up", duration=2000)
 
     def channel_down(self):
         print("Channel Down")
+        FeedbackPopUp(self, "Channel Down", duration=2000)
 
     def change_volume(self, val):
         print(f"Volume: {int(float(val))}")
+        FeedbackPopUp(self, f"Volume: {int(float(val))}", duration=2000)
+
 
     def add_ac_controls(self, window):
         """Add Air Conditioner controls."""
@@ -788,23 +795,29 @@ class SmartHouseGUI(tk.Tk):
             self.music_toggle_button.config(text="On", bg="green", fg="white")
             self.apply_hover_effect(self.music_toggle_button, hover_bg="lightblue", normal_bg="green", hover_fg="black", normal_fg="white")
             print("Music System: On")
+            FeedbackPopUp(self, "Music System: On", duration=2000)
+
         else:
             self.music_toggle_button.config(text="Off", bg="red", fg="white")
             self.apply_hover_effect(self.music_toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
             print("Music System: Off")
+            FeedbackPopUp(self, "Music System: Off", duration=2000)
 
     def change_music_volume(self, val):
         """Adjust the music volume."""
         volume = int(float(val))
         print(f"Music Volume: {volume}")
+        FeedbackPopUp(self, f"Music Volume: {volume}", duration=2000)
 
     def next_song(self):
         """Skip to the next song."""
         print("Playing Next Song")
+        FeedbackPopUp(self, "Playing Next Song", duration=2000)
 
     def previous_song(self):
         """Play the previous song."""
         print("Playing Previous Song")
+        FeedbackPopUp(self, "Playing Previous Song", duration=2000)
 
     def add_vacuum_controls(self, window):
         """Add Robot Vacuum Cleaner controls."""
@@ -967,6 +980,8 @@ class SmartHouseGUI(tk.Tk):
             button.config(relief=tk.RAISED)
         self.mode_buttons[mode].config(relief=tk.SUNKEN)
         print(f"Mode set to: {mode}")
+        FeedbackPopUp(self, f"Mode set to: {mode}", duration=2000)
+
 
     def set_fan_state(self, state):
         """Update the fan state and icon dynamically."""
@@ -974,6 +989,8 @@ class SmartHouseGUI(tk.Tk):
         self.update_fan_icon()
         self.highlight_fan_button(state)
         print(f"Fan set to: {state.capitalize()}")
+        FeedbackPopUp(self, f"Fan set to: {state.capitalize()}", duration=2000)
+
 
     def update_fan_icon(self, width=185, height=185):
         """Update the displayed fan icon based on the current state and specified size."""
