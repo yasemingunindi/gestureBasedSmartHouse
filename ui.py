@@ -55,9 +55,11 @@ class SmartHouseGUI(tk.Tk):
         self.geometry("800x600")
         self.configure(bg="#f0f0f0")
         
+        self.page_stack = []
         self.last_gesture = None  # Store the last gesture processed
         self.last_gesture_time = 0  # Timestamp of the last gesture
         
+        self.hovered_component = None  # Track the currently hovered component
         # Initialize the welcome screen
         self.show_main_menu()
         self.check_gestures()
@@ -67,6 +69,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Ensure unlocking when the window is closed
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+
         
     def lock_mouse(self):
         """Locks the mouse within the window bounds."""
@@ -118,6 +121,19 @@ class SmartHouseGUI(tk.Tk):
         self.last_gesture = gesture
         self.last_gesture_time = current_time
         """Handle specific gestures and map them to UI actions."""
+        
+        # Check for hovered component for volume adjustment
+        if gesture in ["THUMBS UP", "THUMBS DOWN"] and self.hovered_component:
+            current_volume = self.hovered_component.get()
+            if gesture == "THUMBS UP":
+                new_volume = min(current_volume + 5, 100)  # Increase volume
+                self.hovered_component.set(new_volume)
+                print(f"Volume increased to {new_volume}")
+            elif gesture == "THUMBS DOWN":
+                new_volume = max(current_volume - 5, 0)  # Decrease volume
+                self.hovered_component.set(new_volume)
+                print(f"Volume decreased to {new_volume}")
+            return  # Skip further gesture processing if volume adjustment is handled
                
         if gesture == "INDEX POINTING UP":
             print("Controller Mode Activated")
@@ -129,6 +145,8 @@ class SmartHouseGUI(tk.Tk):
             self.open_room_list()
         elif gesture == "ROCK'N ROLL!!!":
             self.show_main_menu()
+            print("Navigating to the previous page...")
+            self.go_to_previous_page()
         elif gesture == "FOUR":
             print("Performing Click...")
             pyautogui.click()  # Simulates a click
@@ -175,6 +193,7 @@ class SmartHouseGUI(tk.Tk):
 
 
     def show_main_menu(self):
+        self.page_stack.append(self.show_main_menu)
         """Display the main menu with a welcome message and a 'Menu' button."""
         # Clear the existing window
         for widget in self.winfo_children():
@@ -268,7 +287,12 @@ class SmartHouseGUI(tk.Tk):
 
 
     def open_room_list(self):
+<<<<<<< Updated upstream
         """Display the room list view with horizontal scrolling."""
+=======
+        self.page_stack.append(self.open_room_list)
+        """Display the room list view."""
+>>>>>>> Stashed changes
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
@@ -364,6 +388,14 @@ class SmartHouseGUI(tk.Tk):
             self.apply_hover_effect(btn, hover_bg="#0cead9", normal_bg="#ffffff")
 
 
+    def go_to_previous_page(self):
+        if self.page_stack:
+            # Pop the last page function and call it
+            last_page = self.page_stack.pop()
+            last_page()  # Navigate to the previous page
+        else:
+            print("No previous page to navigate to.")
+        
     def on_room_click(self, room_name):
         """Handle room button clicks and display room controls in the main window."""
         # Clear the existing window content
@@ -511,6 +543,8 @@ class SmartHouseGUI(tk.Tk):
         )
         self.brightness_slider.set(0)  # Set initial brightness to 0 (off)
         self.brightness_slider.pack()
+        self.brightness_slider.bind("<Enter>", lambda e: self.set_hovered_component(self.brightness_slider))
+        self.brightness_slider.bind("<Leave>", lambda e: self.clear_hovered_component())    
 
 
 
@@ -646,6 +680,10 @@ class SmartHouseGUI(tk.Tk):
         self.volume_scale = ttk.Scale(right_panel, from_=100, to=0, orient="vertical", command=self.change_volume)
         self.volume_scale.set(50)  # Default volume level
         self.volume_scale.pack()
+        
+         # Bind hover events
+        self.tv_volume_scale.bind("<Enter>", lambda e: self.set_hovered_component(self.tv_volume_scale))
+        self.tv_volume_scale.bind("<Leave>", lambda e: self.clear_hovered_component())
 
     def toggle_tv(self):
         """Toggle the TV on and off."""
@@ -720,6 +758,10 @@ class SmartHouseGUI(tk.Tk):
         )
         self.music_volume_scale.set(50)  # Default volume level
         self.music_volume_scale.pack()
+        
+        self.music_volume_scale.bind("<Enter>", lambda e: self.set_hovered_component(self.music_volume_scale))
+        self.music_volume_scale.bind("<Leave>", lambda e: self.clear_hovered_component())
+
 
         # Right panel for song controls
         right_panel = tk.Frame(frame, bg="#f0f0f0")
@@ -747,6 +789,16 @@ class SmartHouseGUI(tk.Tk):
         )
         next_button.pack(side=tk.LEFT, padx=5)
         self.apply_hover_effect(next_button, hover_bg="lightblue", normal_bg="SystemButtonFace")
+    
+    def set_hovered_component(self, component):
+        self.hovered_component = component
+        print(f"Hovered over: {component}")
+
+    def clear_hovered_component(self):
+        self.hovered_component = None
+        print("No component hovered.")
+
+
 
     def toggle_music(self):
         """Toggle the music system on and off."""
@@ -830,6 +882,9 @@ class SmartHouseGUI(tk.Tk):
 
         self.temp_label = tk.Label(temp_frame, text="22°C", font=("Helvetica", 14), bg="#f0f0f0")
         self.temp_label.pack(pady=5)
+        # Bind hover events to set or clear hovered component
+        self.temp_slider.bind("<Enter>", lambda e: self.set_hovered_component(self.temp_slider))
+        self.temp_slider.bind("<Leave>", lambda e: self.clear_hovered_component())
 
         # Column 2: Mode Control
         mode_frame = tk.Frame(layout_frame, bg="#f0f0f0")
