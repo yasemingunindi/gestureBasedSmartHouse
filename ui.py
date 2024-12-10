@@ -54,7 +54,7 @@ class SmartHouseGUI(tk.Tk):
         self.title("Smart House Home Page")
         self.geometry("1200x800")
         self.configure(bg="#f0f0f0")
-        self.page_stack = []
+        self.last_page = None 
         self.last_gesture = None  # Store the last gesture processed
         self.last_gesture_time = 0  # Timestamp of the last gesture
         self.hovered_component = None  # Track the currently hovered component
@@ -143,7 +143,7 @@ class SmartHouseGUI(tk.Tk):
             self.open_room_list()
         elif gesture == "ROCK'N ROLL!!!":
             print("Navigating to the previous page...")
-            self.go_to_previous_page()
+            self.show_main_menu()
         elif gesture == "FOUR":
             print("Performing Click...")
             pyautogui.click()  # Simulates a click
@@ -184,7 +184,6 @@ class SmartHouseGUI(tk.Tk):
         print(f"Scrolled {direction} by {scroll_amount}")
 
     def show_main_menu(self):
-        self.page_stack.append(self.show_main_menu)
         """Display the main menu with a welcome message and a 'Menu' button."""
         # Clear the existing window
         for widget in self.winfo_children():
@@ -365,14 +364,6 @@ class SmartHouseGUI(tk.Tk):
             btn.image = room_icon
             btn.grid(row=row, column=col, padx=20, pady=10)
             self.apply_hover_effect(btn, hover_bg="#0cead9", normal_bg="#ffffff")
-
-    def go_to_previous_page(self):
-        if self.page_stack:
-            # Pop the last page function and call it
-            last_page = self.page_stack.pop()
-            last_page()  # Navigate to the previous page
-        else:
-            print("No previous page to navigate to.")
 
     def on_room_click(self, room_name):
         """Handle room button clicks and display room controls in the main window."""
