@@ -123,12 +123,13 @@ class SmartHouseGUI(tk.Tk):
         # Check for hovered component for volume adjustment
         if gesture in ["THUMBS UP", "THUMBS DOWN"] and self.hovered_component:
             current_volume = self.hovered_component.get()
+            self.continuously_adjust_value(gesture)
             if gesture == "THUMBS UP":
-                new_volume = min(current_volume + 5, 100)  # Increase volume
+                new_volume = min(current_volume + 1, 100)  # Increase volume
                 self.hovered_component.set(new_volume)
                 print(f"Volume increased to {new_volume}")
             elif gesture == "THUMBS DOWN":
-                new_volume = max(current_volume - 5, 0)  # Decrease volume
+                new_volume = max(current_volume - 1, 0)  # Decrease volume
                 self.hovered_component.set(new_volume)
                 print(f"Volume decreased to {new_volume}")
             return  # Skip further gesture processing if volume adjustment is handled
@@ -163,7 +164,7 @@ class SmartHouseGUI(tk.Tk):
         volume_control = self.music_volume_scale if hasattr(self, 'music_volume_scale') else None
         if volume_control:
             current_volume = volume_control.get()
-            new_volume = min(current_volume + 5, 100) if up else max(current_volume - 5, 0)
+            new_volume = min(current_volume + 1, 100) if up else max(current_volume -1, 0)
             volume_control.set(new_volume)
             print(f"Volume {'Increased' if up else 'Decreased'} to {new_volume}")
 
@@ -177,6 +178,7 @@ class SmartHouseGUI(tk.Tk):
 
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
+
 
     def scroll_page(self, direction="up"):
         """Scroll the page up or down."""
@@ -280,12 +282,7 @@ class SmartHouseGUI(tk.Tk):
 
 
     def open_room_list(self):
-<<<<<<< Updated upstream
         """Display the room list view with horizontal scrolling."""
-=======
-        self.page_stack.append(self.open_room_list)
-        """Display the room list view."""
->>>>>>> Stashed changes
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
@@ -528,8 +525,8 @@ class SmartHouseGUI(tk.Tk):
         tk.Label(right_frame, text="Brightness", font=("Helvetica", 12), bg="#f0f0f0", fg="#333333").pack(pady=10)
 
         self.brightness_slider = tk.Scale(
-            right_frame, from_=100, to=0, orient=tk.VERTICAL, length=200, width=50,  # Vertical slider
-            font=("Helvetica", 10), bg="#f0f0f0", fg="#333333",
+            right_frame, from_=100, to=0, orient=tk.VERTICAL, length=250, width=75,  # Vertical slider
+            font=("Helvetica", 10), bg="#f0f0f0", fg="#333333", 
             highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50",
             command=self.change_brightness
         )
@@ -983,6 +980,38 @@ class SmartHouseGUI(tk.Tk):
             print(f"Error updating fan icon: {e}")
             self.fan_icon_label.config(text="Error", image="")
 
+    def continuously_adjust_value(self, gesture):
+        if not self.hovered_component:
+            print("No hovered component to adjust.")
+            return
+
+        def adjust():
+            try:
+                if not self.hovered_component:
+                    print("Lost hover, reassigning hovered component.")
+                    return  # Stop adjustment if hover is lost
+
+                current_value = self.hovered_component.get()
+                if gesture == "THUMBS UP":
+                    new_value = min(current_value + 1, 100)  # Increase value
+                elif gesture == "THUMBS DOWN":
+                    new_value = max(current_value - 1, 0)  # Decrease value
+                else:
+                    return  # Exit if the gesture is invalid
+
+                self.hovered_component.set(new_value)
+                print(f"Value adjusted to {new_value}")
+
+                # Explicitly reassign the hovered component to keep focus
+                self.set_hovered_component(self.hovered_component)
+
+                # Continue adjustment if the same gesture persists
+                if self.last_gesture == gesture:
+                    self.after(250, adjust)  # Repeat every 100 ms
+            except Exception as e:
+                print(f"Error adjusting value: {e}")
+
+        adjust()
 
 
 
