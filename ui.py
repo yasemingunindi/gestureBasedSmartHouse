@@ -52,7 +52,7 @@ class SmartHouseGUI(tk.Tk):
         # Base path to the 'icons' folder
         self.icons_folder = os.path.join(os.path.dirname(__file__), "icons")
         self.title("Smart House Home Page")
-        self.geometry("800x600")
+        self.geometry("1200x800")
         self.configure(bg="#f0f0f0")
         self.page_stack = []
         self.last_gesture = None  # Store the last gesture processed
@@ -68,7 +68,6 @@ class SmartHouseGUI(tk.Tk):
         # Ensure unlocking when the window is closed
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        
     def lock_mouse(self):
         """Locks the mouse within the window bounds."""
         self.update_idletasks()  # Ensure the window bounds are up-to-date
@@ -96,7 +95,7 @@ class SmartHouseGUI(tk.Tk):
         if hasattr(self, 'mouse_lock_id'):
             self.after_cancel(self.mouse_lock_id)
         self.destroy()
-        
+
     def check_gestures(self):
         """Poll for gestures from the queue and handle them."""
         try:
@@ -157,8 +156,7 @@ class SmartHouseGUI(tk.Tk):
             print("Scrolled Down")
         else:
             print(f"Unhandled gesture: {gesture}")
-    
- 
+
     def adjust_volume(self, up):
         """Adjust volume up or down based on the gesture."""
         volume_control = self.music_volume_scale if hasattr(self, 'music_volume_scale') else None
@@ -179,13 +177,11 @@ class SmartHouseGUI(tk.Tk):
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
 
-
     def scroll_page(self, direction="up"):
         """Scroll the page up or down."""
         scroll_amount = 100 if direction == "up" else -100
         pyautogui.scroll(scroll_amount)
         print(f"Scrolled {direction} by {scroll_amount}")
-
 
     def show_main_menu(self):
         self.page_stack.append(self.show_main_menu)
@@ -264,14 +260,12 @@ class SmartHouseGUI(tk.Tk):
 
         # Menu Button
         menu_button = tk.Button(
-            self, text="Rooms", font=("Helvetica", 24, "bold"),
-            bg="#5c3a92", fg="#ffffff", width=10, height=2,
+            self, text="Rooms", font=("Helvetica", 30, "bold"),
+            bg="#5c3a92", fg="#ffffff", width=15, height=3,
             command=self.open_room_list
         )
         menu_button.pack(pady=50)
         self.apply_hover_effect(menu_button, hover_bg="#8a64d6", normal_bg="#5c3a92") 
-
-
 
     def update_time(self):
         """Update the time displayed on the welcome page."""
@@ -279,7 +273,6 @@ class SmartHouseGUI(tk.Tk):
         if hasattr(self, "time_label") and self.time_label.winfo_exists():  # Check if time_label exists
             self.time_label.config(text=current_time)
             self.after(1000, self.update_time)  # Reschedule only if the widget exists
-
 
     def open_room_list(self):
         """Display the room list view with horizontal scrolling."""
@@ -338,10 +331,6 @@ class SmartHouseGUI(tk.Tk):
         # Bind mouse wheel to scroll horizontally
         canvas.bind_all("<Shift-MouseWheel>", lambda e: canvas.xview_scroll(-1 * (e.delta // 120), "units"))
 
-
-
-
-
     def add_room_widgets(self, parent):
         rooms = [
             ("Bedroom", "bedroom_icon.png"),
@@ -362,7 +351,7 @@ class SmartHouseGUI(tk.Tk):
 
             try:
                 icon_path = os.path.join(self.icons_folder, icon_file)
-                room_image = Image.open(icon_path).resize((150, 150), Image.LANCZOS)
+                room_image = Image.open(icon_path).resize((250, 250), Image.LANCZOS)
                 room_icon = ImageTk.PhotoImage(room_image)
             except Exception as e:
                 print(f"Error loading icon for {room_name}: {e}")
@@ -371,7 +360,7 @@ class SmartHouseGUI(tk.Tk):
             btn = tk.Button(
                 parent, text=room_name, font=("Helvetica", 16),
                 bg="#ffffff", fg="#000000", image=room_icon, compound="top",
-                width=200, height=200, command=lambda room=room_name: self.on_room_click(room)
+                width=300, height=300, command=lambda room=room_name: self.on_room_click(room)
             )
             btn.image = room_icon
             btn.grid(row=row, column=col, padx=20, pady=10)
@@ -384,7 +373,7 @@ class SmartHouseGUI(tk.Tk):
             last_page()  # Navigate to the previous page
         else:
             print("No previous page to navigate to.")
-        
+
     def on_room_click(self, room_name):
         """Handle room button clicks and display room controls in the main window."""
         # Clear the existing window content
@@ -492,7 +481,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Power button
         self.power_button = tk.Button(
-            left_frame, image=self.power_icon, bg="green", borderwidth=0,
+            left_frame, image=self.power_icon, bg="green", borderwidth=0, width=80, height=80,
             activebackground="gray", command=self.toggle_light
         )
         self.power_button.pack(pady=10)  # Add vertical spacing for alignment
@@ -503,7 +492,7 @@ class SmartHouseGUI(tk.Tk):
         # Color buttons (below the power button)
         for color, icon in self.lights_on_icons.items():
             color_button = tk.Button(
-                left_frame, bg=color, borderwidth=2, relief="raised", width=6, height=1,
+                left_frame, bg=color, borderwidth=2, relief="raised", width=10, height=2,
                 command=lambda c=color: self.change_bulb_color(c)
             )
             color_button.pack(pady=5)
@@ -525,7 +514,7 @@ class SmartHouseGUI(tk.Tk):
         tk.Label(right_frame, text="Brightness", font=("Helvetica", 12), bg="#f0f0f0", fg="#333333").pack(pady=10)
 
         self.brightness_slider = tk.Scale(
-            right_frame, from_=100, to=0, orient=tk.VERTICAL, length=250, width=75,  # Vertical slider
+            right_frame, from_=100, to=0, orient=tk.VERTICAL, length=300, width=100,  # Vertical slider
             font=("Helvetica", 10), bg="#f0f0f0", fg="#333333", 
             highlightbackground="#f0f0f0", troughcolor="#D3D3D3", activebackground="#4CAF50",
             command=self.change_brightness
@@ -534,8 +523,6 @@ class SmartHouseGUI(tk.Tk):
         self.brightness_slider.pack()
         self.brightness_slider.bind("<Enter>", lambda e: self.set_hovered_component(self.brightness_slider))
         self.brightness_slider.bind("<Leave>", lambda e: self.clear_hovered_component())    
-
-
 
     def apply_hover_effect(self, button, hover_bg, normal_bg, hover_fg=None, normal_fg=None):
         """Apply hover effect to a button."""
@@ -587,8 +574,6 @@ class SmartHouseGUI(tk.Tk):
                                 normal_bg="red" if not self.light_on else "green")
         self.light_on = not self.light_on  # Toggle the state
 
-
-
     def change_brightness(self, value):
         """Update the brightness based on the slider's position."""
         if self.light_on:  # Check if the lights are on
@@ -598,7 +583,6 @@ class SmartHouseGUI(tk.Tk):
             # Reset the slider to 0 if lights are off
             self.brightness_slider.set(0)
             print("Brightness adjustment is disabled because lights are off.")
-
 
     def change_bulb_color(self, color):
         """Change the bulb's color when a color button is clicked."""
@@ -638,7 +622,8 @@ class SmartHouseGUI(tk.Tk):
             bg="red",
             fg="white",
             font=("Helvetica", 12),
-            width=10,
+            width=20,
+            height=5,
             command=self.toggle_tv
         )
         self.toggle_button.pack(pady=5)
@@ -651,11 +636,11 @@ class SmartHouseGUI(tk.Tk):
         channel_label = tk.Label(middle_panel, text="Channel", bg="#f0f0f0", font=("Helvetica", 12))
         channel_label.pack(pady=5)
 
-        channel_up = tk.Button(middle_panel, text="▲", font=("Helvetica", 14), command=self.channel_up)
+        channel_up = tk.Button(middle_panel, text="▲", font=("Helvetica", 14), command=self.channel_up, height=3, width=10)
         channel_up.pack(pady=5)
         self.apply_hover_effect(channel_up, hover_bg="lightblue", normal_bg="SystemButtonFace")
 
-        channel_down = tk.Button(middle_panel, text="▼", font=("Helvetica", 14), command=self.channel_down)
+        channel_down = tk.Button(middle_panel, text="▼", font=("Helvetica", 14), command=self.channel_down,  height=3, width=10)
         channel_down.pack(pady=5)
         self.apply_hover_effect(channel_down, hover_bg="lightblue", normal_bg="SystemButtonFace")
 
@@ -683,6 +668,7 @@ class SmartHouseGUI(tk.Tk):
         else:
             self.toggle_button.config(text="Off", bg="red", fg="white")
             self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+
     def channel_up(self):
         print("Channel Up")
 
@@ -691,7 +677,6 @@ class SmartHouseGUI(tk.Tk):
 
     def change_volume(self, val):
         print(f"Volume: {int(float(val))}")
-
 
     def add_ac_controls(self, window):
         """Add Air Conditioner controls."""
@@ -778,7 +763,7 @@ class SmartHouseGUI(tk.Tk):
         )
         next_button.pack(side=tk.LEFT, padx=5)
         self.apply_hover_effect(next_button, hover_bg="lightblue", normal_bg="SystemButtonFace")
-    
+
     def set_hovered_component(self, component):
         self.hovered_component = component
         print(f"Hovered over: {component}")
@@ -786,8 +771,6 @@ class SmartHouseGUI(tk.Tk):
     def clear_hovered_component(self):
         self.hovered_component = None
         print("No component hovered.")
-
-
 
     def toggle_music(self):
         """Toggle the music system on and off."""
@@ -828,7 +811,7 @@ class SmartHouseGUI(tk.Tk):
         frame.pack(pady=10, fill="x")
         for btn_text in button_texts:
             tk.Button(frame, text=    btn_text, width=15).pack(side=tk.LEFT, padx=5, pady=5)
-    
+
     def on_hover(self, event, button, hover_bg):
         """Change button background color on hover."""
         button.config(bg=hover_bg)
@@ -862,7 +845,7 @@ class SmartHouseGUI(tk.Tk):
 
         tk.Label(temp_frame, text="Temperature", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
         self.temp_slider = tk.Scale(
-            temp_frame, from_=32, to=18, orient=tk.VERTICAL, length=200, width=40,
+            temp_frame, from_=32, to=18, orient=tk.VERTICAL, length=200, width=100,
             bg="#f0f0f0", troughcolor="#d3d3d3", activebackground="#4CAF50",
             font=("Helvetica", 10), command=self.update_temperature
         )
@@ -923,9 +906,6 @@ class SmartHouseGUI(tk.Tk):
         self.fan_icon_label = tk.Label(fan_icon_frame, bg="#f0f0f0")
         self.update_fan_icon()
         self.fan_icon_label.pack(pady=5)
-
-
-
 
     def load_and_resize_icon(self, filename, width, height):
         """Load and resize an image file."""
@@ -1012,8 +992,6 @@ class SmartHouseGUI(tk.Tk):
                 print(f"Error adjusting value: {e}")
 
         adjust()
-
-
 
     def highlight_fan_button(self, state):
         """Highlight the active fan button."""
