@@ -469,7 +469,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Create a container frame for the layout
         layout_frame = tk.Frame(frame, bg="#f0f0f0")
-        layout_frame.pack(fill="x", padx=20, pady=10)
+        layout_frame.pack(fill="x", padx=100, pady=10)
 
         # Left column (Power button and color buttons)
         left_frame = tk.Frame(layout_frame, bg="#f0f0f0")
@@ -498,14 +498,14 @@ class SmartHouseGUI(tk.Tk):
 
         # Middle column (Light bulb)
         middle_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        middle_frame.grid(row=0, column=1, padx=10)
+        middle_frame.grid(row=0, column=1, padx=150)
 
         self.light_bulb_label = tk.Label(middle_frame, image=self.lights_off_icon, bg="#f0f0f0")
         self.light_bulb_label.pack()
 
         # Right column (Brightness slider)
         right_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        right_frame.grid(row=0, column=2, sticky="n", padx=8)
+        right_frame.grid(row=0, column=2, sticky="n", padx=100,pady=100)
 
         tk.Label(right_frame, text="Brightness", font=("Helvetica", 12), bg="#f0f0f0", fg="#333333").pack(pady=10)
 
@@ -577,7 +577,7 @@ class SmartHouseGUI(tk.Tk):
         """Update the brightness based on the slider's position."""
         if self.light_on:  # Check if the lights are on
             self.brightness = int(value)
-            
+
         else:
             # Reset the slider to 0 if lights are off
             self.brightness_slider.set(0)
@@ -630,7 +630,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Middle panel for Channel controls
         middle_panel = tk.Frame(frame, bg="#f0f0f0")
-        middle_panel.pack(side=tk.LEFT, padx=10)
+        middle_panel.pack(side=tk.LEFT, padx=150)
 
         channel_label = tk.Label(middle_panel, text="Channel", bg="#f0f0f0", font=("Helvetica", 12))
         channel_label.pack(pady=5)
@@ -670,9 +670,12 @@ class SmartHouseGUI(tk.Tk):
         if self.tv_state:
             self.toggle_button.config(text="On", bg="green", fg="white")
             self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="green", hover_fg="black", normal_fg="white")
+            FeedbackPopUp(self, "TV ON", duration=2000)
+
         else:
             self.toggle_button.config(text="Off", bg="red", fg="white")
             self.apply_hover_effect(self.toggle_button, hover_bg="lightblue", normal_bg="red", hover_fg="black", normal_fg="white")
+            FeedbackPopUp(self, "TV OFF", duration=2000)
 
     def channel_up(self):
         print("Channel Up")
@@ -684,7 +687,6 @@ class SmartHouseGUI(tk.Tk):
 
     def change_volume(self, val):
         print(f"Volume: {int(float(val))}")
-        FeedbackPopUp(self, f"Volume: {int(float(val))}", duration=2000)
 
 
     def add_ac_controls(self, window):
@@ -732,7 +734,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Middle panel for volume controls
         middle_panel = tk.Frame(frame, bg="#f0f0f0")
-        middle_panel.pack(side=tk.LEFT, padx=10)
+        middle_panel.pack(side=tk.LEFT, padx=150)
 
         volume_label = tk.Label(middle_panel, text="Volume", bg="#f0f0f0", font=("Helvetica", 12))
         volume_label.pack(pady=5)
@@ -807,7 +809,6 @@ class SmartHouseGUI(tk.Tk):
         """Adjust the music volume."""
         volume = int(float(val))
         print(f"Music Volume: {volume}")
-        FeedbackPopUp(self, f"Music Volume: {volume}", duration=2000)
 
     def next_song(self):
         """Skip to the next song."""
@@ -901,7 +902,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Column 2: Mode Control
         mode_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        mode_frame.grid(row=0, column=1, padx=10)
+        mode_frame.grid(row=0, column=1, padx=50)
 
         tk.Label(mode_frame, text="Mode", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
 
@@ -920,7 +921,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Column 3: Fan Control
         fan_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        fan_frame.grid(row=0, column=3, padx=10)
+        fan_frame.grid(row=0, column=3, padx=50)
 
         tk.Label(fan_frame, text="Fan", font=("Helvetica", 14), bg="#f0f0f0").pack(pady=5)
 
@@ -942,7 +943,7 @@ class SmartHouseGUI(tk.Tk):
 
         # Center Fan Icon
         fan_icon_frame = tk.Frame(layout_frame, bg="#f0f0f0")
-        fan_icon_frame.grid(row=0, column=2, padx=10)
+        fan_icon_frame.grid(row=0, column=2, padx=50)
 
         self.fan_icon_label = tk.Label(fan_icon_frame, bg="#f0f0f0")
         self.update_fan_icon()
