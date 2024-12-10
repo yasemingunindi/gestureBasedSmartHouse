@@ -2,12 +2,16 @@ import cv2
 import mediapipe as mp
 import math
 import pyautogui
+import time
+from collections import deque
+from pynput.mouse import Controller
 from multiprocessing import Queue
 
 # Initialize MediaPipe Hand module
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 mp_drawing = mp.solutions.drawing_utils
+mouse = Controller()
 
 # Start video capture
 cap = cv2.VideoCapture(0)
@@ -15,6 +19,29 @@ cap = cv2.VideoCapture(0)
 screen_width, screen_height = pyautogui.size()  # Get screen resolution
 prev_x, prev_y = None, None
 prev_wrist_y = None
+wrist_y_history = deque(maxlen=10)  # Tracks the last 10 wrist vertical positions
+wrist_x_history = deque(maxlen=10)  # Tracks the last 10 wrist horizontal positions
+SCROLL_THRESHOLD = 5
+GESTURE_COOLDOWN_TIME = 0.5  # Cooldown time for repeated gestures
+gesture_cooldown = {}
+
+def detect_scroll_direction(history, axis="y"):
+    """Detect scroll direction based on wrist movement."""
+    if len(history) < 2:
+        return None
+    diffs = [history[i] - history[i - 1] for i in range(1, len(history))]
+    avg_diff = sum(diffs) / len(diffs)
+    if axis == "y":  # Vertical scrolling
+        if avg_diff > SCROLL_THRESHOLD:
+            return "DOWN"
+        elif avg_diff < -SCROLL_THRESHOLD:
+            return "UP"
+    elif axis == "x":  # Horizontal scrolling
+        if avg_diff > SCROLL_THRESHOLD:
+            return "RIGHT"
+        elif avg_diff < -SCROLL_THRESHOLD:
+            return "LEFT"
+    return None
 
 def calculate_distance(point1, point2):
     """
@@ -70,6 +97,7 @@ def is_three(landmarks):
 def is_thumbs_up(landmarks):
     """Check if the thumb is pointing up."""
     return (landmarks[4].y < landmarks[3].y)
+
 def is_thumbs_down(landmarks):
     """Check if the thumb is pointing down."""
     return (landmarks[4].y > landmarks[3].y)
@@ -166,7 +194,6 @@ def gesture_recognition(queue):
                 if(gesture != 0):
                     queue.put(gesture)
                     print(f"Gesture Detected: {gesture}")
-                    
                 # Get the tip of the index finger
                 x = int(landmarks[8].x * frame.shape[1])  # Convert normalized x to pixel
                 y = int(landmarks[8].y * frame.shape[0])  # Convert normalized y to pixel
@@ -195,27 +222,43 @@ def gesture_recognition(queue):
                 
                 # Gesture detection for peace sign
                 if is_peace_sign(landmarks):
-                    print("Peace Sign Detected") 
+                    print("Peace Sign Detected")
                     
-                    wrist_y = landmarks[0].y * frame.shape[0] 
-                    print(f"DEBUG: Calculated wrist_y = {wrist_y}, prev_wrist_y = {prev_wrist_y}")
+                    # Track wrist positions for scrolling
+                    wrist_x = landmarks[0].x * frame_width
+                    wrist_y = landmarks[0].y * frame_height
+                    wrist_x_history.append(wrist_x)
+                    wrist_y_history.append(wrist_y)
 
-                    # Scroll behavior
-                    if prev_wrist_y is None:
-                        prev_wrist_y = wrist_y
-                    else:
-                        diff = wrist_y  - prev_wrist_y
-                        if diff > 5:  # Moving downward
-                            queue.put("SCROLL DOWN")
-                            print("Scrolling Down")
-                            cv2.putText(frame, "SCROLL DOWN", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                        elif diff < -5:  # Moving upward
-                            queue.put("SCROLL UP")  # Scroll up
-                            print("Scrolling Up")
-                            cv2.putText(frame, "SCROLL UP", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                        prev_wrist_y = wrist_y   # Update wrist position for scrolling
+                    # Detect scroll directions
+                    vertical_scroll = detect_scroll_direction(wrist_y_history, axis="y")
+                    horizontal_scroll = detect_scroll_direction(wrist_x_history, axis="x")
+
+                    # Cooldown and scrolling actions
+                    current_time = time.time()
+                    if vertical_scroll == "UP" and ("SCROLL UP" not in gesture_cooldown or current_time - gesture_cooldown["SCROLL UP"] > GESTURE_COOLDOWN_TIME):
+                        mouse.scroll(0, 6)
+                        print("Scrolled UP")
+                        gesture_cooldown["SCROLL UP"] = current_time
+
+                    elif vertical_scroll == "DOWN" and ("SCROLL DOWN" not in gesture_cooldown or current_time - gesture_cooldown["SCROLL DOWN"] > GESTURE_COOLDOWN_TIME):
+                        mouse.scroll(0, -6)
+                        print("Scrolled DOWN")
+                        gesture_cooldown["SCROLL DOWN"] = current_time
+
+                    if horizontal_scroll == "RIGHT" and ("SCROLL RIGHT" not in gesture_cooldown or current_time - gesture_cooldown["SCROLL RIGHT"] > GESTURE_COOLDOWN_TIME):
+                        mouse.scroll(5, 0)
+                        print("Scrolled RIGHT")
+                        gesture_cooldown["SCROLL RIGHT"] = current_time
+
+                    elif horizontal_scroll == "LEFT" and ("SCROLL LEFT" not in gesture_cooldown or current_time - gesture_cooldown["SCROLL LEFT"] > GESTURE_COOLDOWN_TIME):
+                        mouse.scroll(-5, 0)
+                        print("Scrolled LEFT")
+                        gesture_cooldown["SCROLL LEFT"] = current_time
                 else:
-                    prev_wrist_y = None  # Reset scrolling if peace sign is not active
+                    # Clear histories if peace sign is not detected
+                    wrist_x_history.clear()
+                    wrist_y_history.clear()                
                                     
                 if prev_x is not None and prev_y is not None:
                     # Calculate movement

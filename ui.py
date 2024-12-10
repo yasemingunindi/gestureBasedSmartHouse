@@ -268,7 +268,7 @@ class SmartHouseGUI(tk.Tk):
 
 
     def open_room_list(self):
-        """Display the room list view."""
+        """Display the room list view with horizontal scrolling."""
         # Clear the existing window
         for widget in self.winfo_children():
             widget.destroy()
@@ -280,12 +280,11 @@ class SmartHouseGUI(tk.Tk):
         # Go Back Button with left arrow symbol
         back_button = tk.Button(
             header_frame, text="⬅", font=("Helvetica", 18, "bold"),
-            bg="#5c3a92", fg="#ffffff", borderwidth=0,  # Match the header frame background
+            bg="#5c3a92", fg="#ffffff", borderwidth=0,
             command=self.show_main_menu
         )
         back_button.pack(side=tk.LEFT, padx=10)
         self.apply_hover_effect(back_button, hover_bg="#8a64d6", normal_bg="#5c3a92", normal_fg="#ffffff")
-
 
         # Title aligned with the Go Back button
         title_label = tk.Label(
@@ -294,29 +293,38 @@ class SmartHouseGUI(tk.Tk):
         )
         title_label.pack(side=tk.LEFT, padx=10)
 
-        # Room list in a scrollable frame
-        room_frame = tk.Frame(self, bg="#5c3a92")  # Purple background
-        room_frame.pack(fill=tk.BOTH, expand=True, pady=20, padx=50)
+        # Create a scrollable canvas for the room list
+        container = tk.Frame(self, bg="#5c3a92")
+        container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        room_canvas = tk.Canvas(room_frame, bg="#5c3a92")  # Purple background
-        room_scroll_x = tk.Scrollbar(room_frame, orient="horizontal", command=room_canvas.xview)
-        room_scroll_x.config(width=50)
-        room_canvas.configure(xscrollcommand=room_scroll_x.set)
+        # Canvas for horizontal scrolling
+        canvas = tk.Canvas(container, bg="#5c3a92", highlightthickness=0)
+        canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        room_list_frame = tk.Frame(room_canvas, bg="#5c3a92")  # Purple background
-        room_canvas.create_window((0, 0), window=room_list_frame, anchor="nw")
-        room_canvas.pack(side="top", fill="both", expand=True)
-        room_scroll_x.pack(side="bottom", fill="x")
+        # Add a horizontal scrollbar
+        scrollbar = tk.Scrollbar(container, orient="horizontal", command=canvas.xview)
+        scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # Add room widgets
-        self.add_room_widgets(room_list_frame)
+        # Configure canvas to work with the horizontal scrollbar
+        canvas.configure(xscrollcommand=scrollbar.set)
 
-        # Adjust scroll region
-        room_list_frame.bind(
-            "<Configure>", lambda e: room_canvas.configure(
-                scrollregion=room_canvas.bbox("all")
-            )
+        # Create a frame inside the canvas for the room widgets
+        scrollable_frame = tk.Frame(canvas, bg="#5c3a92")
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+        # Populate the scrollable frame with room widgets
+        self.add_room_widgets(scrollable_frame)
+
+        # Update the scroll region when the frame size changes
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
+
+        # Bind mouse wheel to scroll horizontally
+        canvas.bind_all("<Shift-MouseWheel>", lambda e: canvas.xview_scroll(-1 * (e.delta // 120), "units"))
+
+
 
 
 
@@ -395,8 +403,12 @@ class SmartHouseGUI(tk.Tk):
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
+        # Bind mouse wheel to scroll vertically
+        canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(-1 * (e.delta // 120), "units"))
+        canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux scroll up
+        canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))   # Linux scroll down
+
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        scrollbar.config(width=50)  # Increase width for better visibility
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.pack(side="left", fill="both", expand=True)
