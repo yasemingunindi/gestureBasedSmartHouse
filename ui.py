@@ -716,7 +716,8 @@ class SmartHouseGUI(tk.Tk):
             bg="red",
             fg="white",
             font=("Helvetica", 12),
-            width=10,
+            width=20,
+            height=5,
             command=self.toggle_music
         )
         self.music_toggle_button.pack(pady=5)
@@ -752,9 +753,10 @@ class SmartHouseGUI(tk.Tk):
 
         prev_button = tk.Button(
             song_controls_frame,
-            text="◀ Previous Song",
+            text="◀◀ Previous Song",
             font=("Helvetica", 12),
             width=15,
+            height=5,
             command=self.previous_song
         )
         prev_button.pack(side=tk.LEFT, padx=5)
@@ -762,9 +764,10 @@ class SmartHouseGUI(tk.Tk):
 
         next_button = tk.Button(
             song_controls_frame,
-            text="Next Song ▶",
+            text="Next Song ▶▶",
             font=("Helvetica", 12),
             width=15,
+            height=5,
             command=self.next_song
         )
         next_button.pack(side=tk.LEFT, padx=5)
